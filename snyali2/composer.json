@@ -1,0 +1,14 @@
+{
+    "name": "ilyaplot/snyali2",
+    "description": "snyali2",
+    "require": {
+        "php": ">=5.5.0",
+        "yiisoft/yii": "1.1.16",
+        "twitter/bootstrap": "3.3.*",
+        "components/jquery": "1.11.*",
+        "bootstrap-plus/bootstrap-media-lightbox": "dev-master",
+        "guzzlehttp/guzzle": "6.0.1",
+        "igi/sypexgeo": "dev-master",
+        "nodge/yii-eauth" : "dev-master"
+    }
+}

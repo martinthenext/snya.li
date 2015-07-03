@@ -1,0 +1,5 @@
+/nbproject/private/
+/vendor/
+/www/assets/
+/protected/runtime/
+/composer.lock
