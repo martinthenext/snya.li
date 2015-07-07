@@ -6,8 +6,10 @@
     <div class="col-lg-12 col-md-12">
         
         <div class="panel panel-default">
-            <div class="panel-heading">Поиск</div>
-            <div class="panel-body">
+            <div class="panel-heading">
+                Поиск
+            </div>
+            <div class="panel-body search">
                 <form method="get" action="<?=Yii::app()->createAbsoluteUrl('items/search')?>">
                     <div class="form-group">
                         <input name="search" type="text" value="<?=$search?>" class="form-control" placeholder="Сдаю квартиру в Москве">

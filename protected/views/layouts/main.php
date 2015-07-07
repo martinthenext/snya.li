@@ -44,7 +44,7 @@
                             <div style="max-width: 150px;">
                                 <strong><?= $lit ?></strong><br />
                                 <?php foreach ($cityGroup as $city): ?>
-                                    <a class="city-link" href="<?= Yii::app()->createAbsoluteUrl("items/index", array('city' => $city->link)) ?>">
+                                    <a class="city-link" href="<?= Yii::app()->createAbsoluteUrl("items/CityChange", array('city' => $city->link)) ?>">
                                         <?= $city->title ?>
                                     </a><br />
                                 <?php endforeach; ?>

@@ -67,6 +67,11 @@ class UserController extends Controller
         Yii::app()->user->logout();
         Yii::app()->request->redirect(Yii::app()->user->returnUrl);
     }
+    
+    public function actionLogoutTest()
+    {
+        Yii::app()->user->logout();
+    }
 
     protected function registers()
     {

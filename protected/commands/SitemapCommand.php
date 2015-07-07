@@ -5,18 +5,22 @@
  */
 class SitemapCommand extends CConsoleCommand
 {
-    
-    
+
     private $_sitemapDirectory;
 
     public function beforeAction($action, $params)
     {
         $this->_sitemapDirectory = "/var/www/snya.li/www/sitemaps/";
 
-        $_SERVER['HTTP_HOST'] = 'snya.li';
-        $_SERVER['SERVER_NAME'] = 'snya.li';
-        Yii::app()->urlManager->baseUrl = "http://snya.li";
-        
+        $_SERVER = array(
+            'HTTP_HOST' => 'snya.li',
+            'SERVER_NAME' => 'snya.li',
+            'SERVER_PROTOCOL' => 'HTTP/1.1',
+            'HTTPS' => 'on',
+        );
+
+        Yii::app()->urlManager->baseUrl = (($_SERVER['HTTPS'] == 'on') ? 'https' : 'http') . "://" . $_SERVER['HTTP_HOST'];
+
         if (!is_dir($this->_sitemapDirectory) || !is_writable($this->_sitemapDirectory)) {
             $this->Log("Папка {$this->_sitemapDirectory} не существует или недоступна для записи.");
             exit();
@@ -27,8 +31,8 @@ class SitemapCommand extends CConsoleCommand
 
     public function actionIndex()
     {
-        
-        
+
+
         $urls = [
             [
                 'url' => Yii::app()->createAbsoluteUrl('/'),
@@ -41,11 +45,11 @@ class SitemapCommand extends CConsoleCommand
 
         foreach ($adverts as $advert) {
             $urls[] = [
-                'url'=>Yii::app()->createAbsoluteUrl('items/item', array('city' => $advert->city->link, 'type' => $advert->type_data->link, 'link' => $advert->link, 'id' => $advert->id)),
+                'url' => Yii::app()->createAbsoluteUrl('items/item', array('city' => $advert->city->link, 'type' => $advert->type_data->link, 'link' => $advert->link, 'id' => $advert->id)),
                 'lastmod' => date("Y-m-d\TH:i:s+00:00", $advert->created),
             ];
         }
-        
+
         $sitemapList = array_chunk($urls, 50000);
         $sitemaps = [];
 
@@ -66,6 +70,7 @@ class SitemapCommand extends CConsoleCommand
         $root = $dom->createElement("urlset");
         $root->setAttribute("xmlns", "http://www.sitemaps.org/schemas/sitemap/0.9");
         foreach ($urls as $url) {
+            echo $url['url'].PHP_EOL;
             $urlNode = $dom->createElement("url");
             $locNode = $dom->createElement("loc", $url['url']);
             if (!empty($url['lastmod'])) {

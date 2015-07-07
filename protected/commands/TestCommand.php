@@ -3,6 +3,5 @@
 class TestCommand extends CConsoleCommand
 {
 
-    
 
 }

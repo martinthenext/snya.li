@@ -421,6 +421,6 @@ class Adverts extends CActiveRecord
      */
     public function getContent()
     {
-        return preg_replace("/#([\w_]+)/isu", "<a href=\"/search.html?search=%23$1\">#$1</a>", $this->text);
+        return preg_replace("/#([\w_]+)/isu", "<a href=\"".Yii::app()->request->hostInfo."/search?search=%23$1\">#$1</a>", $this->text);
     }
 }

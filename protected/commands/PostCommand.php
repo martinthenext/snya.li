@@ -5,9 +5,14 @@ class PostCommand extends CConsoleCommand
 
     public function actionIndex()
     {
-        $_SERVER['HTTP_HOST'] = 'snya.li';
-        $_SERVER['SERVER_NAME'] = 'snya.li';
-        Yii::app()->urlManager->baseUrl = "http://snya.li";
+        $_SERVER = array(
+            'HTTP_HOST' => 'snya.li',
+            'SERVER_NAME' => 'snya.li',
+            'SERVER_PROTOCOL' => 'HTTP/1.1',
+            'HTTPS' => 'on',
+        );
+
+        Yii::app()->urlManager->baseUrl = (($_SERVER['HTTPS'] == 'on') ? 'https' : 'http') . "://" . $_SERVER['HTTP_HOST'];
 
         $options = [
             'app_id' => 4943537,
@@ -48,9 +53,6 @@ class PostCommand extends CConsoleCommand
         $httpClient = new GuzzleHttp\Client(['defaults' => [
                 'verify' => false
         ]]);
-
-
-
 
         foreach ($advert->attachments as $attachment) {
 

@@ -12,8 +12,26 @@ class ItemsController extends Controller
         return parent::beforeAction($action);
     }
 
+    public function actionCityChange($city)
+    {
+        if ($cityModel = Cities::model()->findByAttributes(array('link'=>$city))) {
+            City::setCurrentCity($cityModel->id);
+        }
+        
+        City::redirect();
+    }
+    
     public function actionIndex($type = null, $city = null, $vk = null)
     {
+        
+        if (empty($city) && !Yii::app()->request->isAjaxRequest) {
+            City::redirect();
+        }
+        
+        if (!empty($type)) {
+            $this->_type = AdvertTypes::model()->findByAttributes(array('link' => $type));
+        }
+        
         $this->processPageRequest('page');
         $this->pageTitle = Yii::app()->name . ' &gt; ' . 'Объявления';
         $this->registers();
@@ -35,8 +53,6 @@ class ItemsController extends Controller
         $criteria->order = 't.created desc';
         $criteria->with = array('city', 'type_data');
 
-        //$adverts = Adverts::model()->with(array('city', 'type_data'))->findAll($criteria);
-
         $pageSize = 10;
         $view = 'index';
         if ($vk) {
@@ -51,17 +67,6 @@ class ItemsController extends Controller
                 'pageVar' => 'page'
             ),
         ));
-
-        $this->_type = AdvertTypes::model()->findByAttributes(array('link' => $type));
-
-
-        if (!Yii::app()->request->isAjaxRequest) {
-            if (!empty($city)) {
-                $this->_city = Cities::model()->findByAttributes(array('link' => $city));
-            } else if (!empty($this->_city)) {
-                Yii::app()->request->redirect(Yii::app()->createAbsoluteUrl('items/index', array('city' => $this->_city->link)));
-            }
-        }
 
         if (Yii::app()->request->isAjaxRequest) {
             $this->renderPartial('_loop', array(
@@ -139,7 +144,35 @@ class ItemsController extends Controller
 
     public function actionSearch($search = null, $city = null, $type = null)
     {
-
+        
+        if (!empty($type)) {
+            $this->_type = AdvertTypes::model()->findByAttributes(array('link' => $type));
+        }
+        
+        if (preg_match("/(\?|&)/isu",Yii::app()->request->url)) {
+            
+            $params = array(
+                'search'=>trim($search),
+            );
+            
+            if (!empty($city) && preg_match("/^[\w\-\_]+$/isu", $city)) {
+                $params['city'] = $city;
+            } else {
+                $params['city'] = City::getModel()->link;
+            }
+            
+            if (!empty($this->_type->link)) {
+                $params['type'] = $this->_type->link;
+            }
+            
+            Yii::app()->request->redirect(Yii::app()->createAbsoluteUrl("items/search", $params));
+        }
+        
+        
+        $this->_navbarWithoutSearch = true;
+        
+        
+        
         $this->processPageRequest('page');
         $this->pageTitle = Yii::app()->name . ' &gt; ' . 'Поиск объявлений';
         $this->registers();
@@ -155,8 +188,8 @@ class ItemsController extends Controller
 
         $params = array();
         
-        if ($cityState = Yii::app()->user->getState('city_id')) {
-            $params['city_id'] = (int) $cityState;
+        if (!empty(City::getModel()->id)) {
+            $params['city_id'] = (int) City::getModel()->id;
         }
         
         if (!empty($city)) {
@@ -181,8 +214,6 @@ class ItemsController extends Controller
         $criteria->addCondition('t.enabled = 1');
         $criteria->order = 't.created desc';
         $criteria->with = array('city', 'type_data');
-
-        //$adverts = Adverts::model()->with(array('city', 'type_data'))->findAll($criteria);
 
         $pageSize = 10;
         $view = 'search';

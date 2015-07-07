@@ -10,8 +10,9 @@ class Navbar extends CMenu
 
     public $navbarClass = 'navbar navbar-default navbar-fixed-top';
     public $activeClass = 'active';
+    public $withoutSearch = false;
     public $label;
-    
+
     public function run()
     {
         return parent::run();
@@ -39,7 +40,7 @@ class Navbar extends CMenu
             echo CHtml::tag('span', array('class' => 'icon-bar'), '');
             echo CHtml::tag('span', array('class' => 'icon-bar'), '');
             echo CHtml::closeTag('button');
-            echo CHtml::openTag('a', array('href'=>Yii::app()->createAbsoluteUrl("/"), 'class'=>'navbar-brand'));
+            echo CHtml::openTag('a', array('href' => Yii::app()->createAbsoluteUrl("/"), 'class' => 'navbar-brand'));
             echo $this->label;
             echo CHtml::closeTag('a');
             echo CHtml::closeTag('div');
@@ -48,15 +49,29 @@ class Navbar extends CMenu
             echo CHtml::openTag('ul', array('class' => 'nav navbar-nav'));
             $this->renderMenuRecursive($items);
             echo CHtml::closeTag('ul');
+
             #begin search form
-            echo CHtml::form(Yii::app()->createAbsoluteUrl("items/search"), 'get', array('class' => 'navbar-form navbar-left', 'role' => 'search'));
-            echo CHtml::tag('div', array('class' => 'form-group'));
-            echo CHtml::textField('search', '', array('placeholder' => 'Поиск', 'class' => 'form-control'));
-            echo CHtml::closeTag('div');
-            echo CHtml::submitButton('Найти', array('class' => 'btn btn-default'));
-            echo CHtml::endForm();
-            echo CHtml::closeTag('div');
-            # end search form
+
+
+            if (!$this->withoutSearch) {
+                echo CHtml::form(Yii::app()->createAbsoluteUrl("items/search"), 'get', array('class' => 'navbar-form navbar-left', 'role' => 'search', 'id' => 'search-from'));
+
+                if (!empty(City::getModel()->link)) {
+                    echo CHtml::hiddenField('city', City::getModel()->link);
+                }
+
+                if (!empty(Yii::app()->request->getParam('type')) && preg_match("/^\w+$/isu", Yii::app()->request->getParam('type'))) {
+                    echo CHtml::hiddenField('type', Yii::app()->request->getParam('type'));
+                }
+
+                echo CHtml::tag('div', array('class' => 'form-group'));
+                echo CHtml::textField('search', '', array('placeholder' => 'Поиск', 'class' => 'form-control'));
+                echo CHtml::closeTag('div');
+                echo CHtml::submitButton('Найти', array('class' => 'btn btn-default'));
+                echo CHtml::endForm();
+                echo CHtml::closeTag('div');
+                # end search form
+            }
             echo CHtml::closeTag('div');
             echo CHtml::closeTag('nav');
         }
