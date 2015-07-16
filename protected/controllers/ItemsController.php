@@ -1,11 +1,11 @@
 <?php
-ini_set('display_errors', 'on');
-error_reporting(E_ALL);
+
 class ItemsController extends Controller
 {
 
     public $imagesAsset = '';
 
+    
     public function beforeAction($action)
     {
 
@@ -21,16 +21,21 @@ class ItemsController extends Controller
         City::redirect();
     }
     
-    public function actionIndex($type = null, $city = null, $vk = null)
+    /**
+     * Список объявлений по городу
+     * @param string $type
+     * @param string $city
+     * @param int $vk
+     * @throws CHttpException
+     * 
+     * @todo Просклонять города для description и keywords
+     */
+    public function actionIndex($type = null, $city = null)
     {
         
         if (empty($city) && !Yii::app()->request->isAjaxRequest) {
             if (!preg_match("/(yandex\.com|Googlebot)/isu", Yii::app()->request->getUserAgent())) {
-                
                 City::redirect();
-                exit();
-            } else {
-                header('ClientUserAgent:'.Yii::app()->request->getUserAgent());
             }
         }
         
@@ -68,10 +73,6 @@ class ItemsController extends Controller
 
         $pageSize = 10;
         $view = 'index';
-        if ($vk) {
-            $view = 'index_iframe';
-            $pageSize = 5;
-        }
 
         $dataProvider = new CActiveDataProvider('Adverts', array(
             'criteria' => $criteria,
@@ -95,7 +96,7 @@ class ItemsController extends Controller
 
     public function actionItem($city, $type, $id)
     {
-        $this->pageTitle = Yii::app()->name . ' &gt; ' . 'Объявления';
+        
         // Регаем bootstrap
         $bootstrap = $this->assetManager->publish(Yii::app()->params->vendorPath . '/twitter/bootstrap/dist/');
         $stylesheet = $this->assetManager->publish(Yii::app()->basePath . '/styles/');
@@ -124,6 +125,10 @@ class ItemsController extends Controller
             throw new CHttpException(404, 'Объявление не найдено.');
         }
 
+        $this->pageTitle = Yii::app()->name . ' &gt; ' . 'Объявления';
+        $this->pageKeywords = $advert->keywords;
+        $this->pageDescription = $advert->shortDescription;
+        
         $this->render('item', array(
             'advert' => $advert,
         ));
