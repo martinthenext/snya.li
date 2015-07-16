@@ -11,8 +11,8 @@ class Controller extends CController
     public $cities;
     public $types;
 
-    public $pageDescription;
-    public $pageKeywords;
+    public $pageDescription = 'Поиск жилья Вконтакте без риелторов';
+    public $pageKeywords = 'сдам, сниму, аренду, продам, куплю, квартиру, дом';
     
     public function beforeAction($action)
     {
