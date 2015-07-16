@@ -72,6 +72,8 @@ class Navbar extends CMenu
                 echo CHtml::closeTag('div');
                 # end search form
             }
+            
+            
             echo CHtml::closeTag('div');
             echo CHtml::closeTag('nav');
         }

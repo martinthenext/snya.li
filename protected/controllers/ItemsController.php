@@ -25,11 +25,23 @@ class ItemsController extends Controller
     {
         
         if (empty($city) && !Yii::app()->request->isAjaxRequest) {
-            City::redirect();
+            if (!preg_match("/(yandex\.com|Googlebot)/isu", Yii::app()->request->getUserAgent())) {
+                
+                City::redirect();
+                exit();
+            } else {
+                header('ClientUserAgent:'.Yii::app()->request->getUserAgent());
+            }
         }
         
         if (!empty($type)) {
             $this->_type = AdvertTypes::model()->findByAttributes(array('link' => $type));
+        }
+        
+        $city = empty($city) ? 'moskva' : $city;
+        
+        if (!Cities::model()->countByAttributes(array('link'=>$city))) {
+            throw new CHttpException(404, 'Страница не найдена');
         }
         
         $this->processPageRequest('page');
@@ -39,6 +51,7 @@ class ItemsController extends Controller
 
 
         $criteria = new CDbCriteria();
+        
         if (!empty($city)) {
             $criteria->compare('city.link', $city);
         }
@@ -130,7 +143,7 @@ class ItemsController extends Controller
         $jquery = $this->assetManager->publish(Yii::app()->params->vendorPath . '/components/jquery/');
         $lightbox = $this->assetManager->publish(Yii::app()->params->vendorPath . '/bootstrap-plus/bootstrap-media-lightbox/');
         $js = $this->assetManager->publish(Yii::app()->basePath . '/js/');
-        $this->imagesAsset = $this->assetManager->publish(Yii::app()->basePath . '/images/');
+        //$this->imagesAsset = $this->assetManager->publish(Yii::app()->basePath . '/images/');
 
         $this->clientScript->registerCssFile($bootstrap . '/css/bootstrap.min.css');
         $this->clientScript->registerCssFile($lightbox . '/bootstrap-media-lightbox.css');
@@ -138,7 +151,7 @@ class ItemsController extends Controller
 
         $this->clientScript->registerScriptFile($jquery . '/jquery.min.js', CClientScript::POS_HEAD);
         $this->clientScript->registerScriptFile($bootstrap . '/js/bootstrap.min.js', CClientScript::POS_HEAD);
-        $this->clientScript->registerScriptFile($lightbox . '/bootstrap-media-lightbox.min.js', CClientScript::POS_HEAD);
+        $this->clientScript->registerScriptFile($lightbox . '/bootstrap-media-lightbox.js?time='.time(), CClientScript::POS_HEAD);
         $this->clientScript->registerScriptFile($js . '/media.js?rand=' . time(), CClientScript::POS_HEAD);
     }
 
@@ -243,4 +256,15 @@ class ItemsController extends Controller
         }
     }
 
+    public function actionTest()
+    {
+        $criteria = new CDbCriteria();
+        $criteria->order = 't.title asc';
+        foreach (Cities::model()->findAll($criteria) as $city) {
+
+            echo $city->id.' # '.$city->title.' # '.$city->link."<br />".PHP_EOL;
+        }
+        
+        
+    }
 }

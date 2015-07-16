@@ -103,7 +103,11 @@ class PostCommand extends CConsoleCommand
 
 
         $post['message'] = implode(" ", $tags) . PHP_EOL;
-        $post['message'] .= trim(str_replace('<br>', PHP_EOL, html_entity_decode(htmlspecialchars_decode($advert->text)))) . PHP_EOL;
+        $text = preg_replace("/!+/isu", "!", $advert->text);
+        $text = preg_replace("/\<br\>/isu", PHP_EOL, $text);
+        $text = html_entity_decode(htmlspecialchars_decode($advert->text));
+        $text = preg_replace("/[\x{fe00}-\x{fe0f}]/u", '', $text);
+        $post['message'] .= trim($text).PHP_EOL;
         $post['message'] .= 'Контакты: ' . $advert->vk_owner_first_name . ' ' . $advert->vk_owner_last_name . ' ';
         foreach ($advert->contacts as $contact) {
             $post['message'] .= $contact->value . " ";
@@ -173,6 +177,185 @@ class PostCommand extends CConsoleCommand
             $advert->export_vk_post_id = $result->post_id;
             $advert->save();
         }
+    }
+
+    public function actionTweet()
+    {
+        // Постим с 7 утра до 23 вечера
+        if (date("H") < 8 || date("H") > 22) {
+        //    exit();
+        }
+
+        $_SERVER = array(
+            'HTTP_HOST' => 'snya.li',
+            'SERVER_NAME' => 'snya.li',
+            'SERVER_PROTOCOL' => 'HTTP/1.1',
+            'HTTPS' => 'on',
+        );
+
+        Yii::app()->urlManager->baseUrl = (($_SERVER['HTTPS'] == 'on') ? 'https' : 'http') . "://" . $_SERVER['HTTP_HOST'];
+
+        $httpClient = new GuzzleHttp\Client(['defaults' => [
+                'verify' => false
+        ]]);
+
+        $twitterPath = realpath(dirname(dirname(__FILE__)) . "/components/twitter/");
+
+        include_once $twitterPath . "/Config.php";
+        include_once $twitterPath . "/SignatureMethod.php";
+        include_once $twitterPath . "/HmacSha1.php";
+        include_once $twitterPath . "/Response.php";
+        include_once $twitterPath . "/Consumer.php";
+        include_once $twitterPath . "/Token.php";
+        include_once $twitterPath . "/Request.php";
+        include_once $twitterPath . "/Util.php";
+        include_once $twitterPath . "/Util/JsonDecoder.php";
+        include_once $twitterPath . "/TwitterOAuth.php";
+        #############
+
+        $options = [
+                    'CONSUMER_KEY' => 'QaZhOArqdhX2dTeDgREKLZU1z',
+                    'CONSUMER_SECRET' => 'p6M92Hy25Sny8eCfaQRFbFWQgo2LzoTWF6Jt81AcW8HEF0aXSg',
+                    'OAUTH_TOKEN' => '3369377620-afhAyx3mKvGIhy8I9CFZJzzkc49WL7AW8Vx6IgE',
+                    'OAUTH_SECRET' => '3rA5lmWj6soKsB8gj6NV4otGkg8MSrROiNOwKTDCNbdhS',
+                    'account' => 'snyali_snyali',
+        ];
+
+        $criteria = new CDbCriteria();
+        $interval = 86400; // сутки
+        $criteria->condition = "t.enabled and t.created >= UNIX_TIMESTAMP() - {$interval} and t.export_tweet_status_id = '0'";
+        $criteria->limit = 1;
+        $criteria->order = "t.relevance desc";
+
+        $advert = Adverts::model()->with(array('city', 'type_data'))->find($criteria);
+
+        if (!$advert) {
+            $interval = $interval * 2;
+            $criteria->condition = "t.enabled and t.created >= UNIX_TIMESTAMP() - {$interval} and t.export_tweet_status_id = '0'";
+            $advert = Adverts::model()->find($criteria);
+        }
+
+        if (!$advert) {
+            echo "Empty set. Done." . PHP_EOL;
+            exit();
+        }
+
+        $connection = new Abraham\TwitterOAuth\TwitterOAuth($options['CONSUMER_KEY'], $options['CONSUMER_SECRET'], $options['OAUTH_TOKEN'], $options['OAUTH_SECRET']);
+
+        $images = array();
+        $medias = array();
+
+        
+        foreach ($advert->attachments as $attachment) {
+
+            
+            usleep(500);
+            
+            
+            
+            if (count($medias) > 3) {
+                break;
+            }
+            
+            
+            if ($attachment->type != 'photo' || empty($attachment->src)) {
+                continue;
+            }
+
+
+            $filename = tempnam('/tmp', 'snyali_image');
+
+            try {
+                $result = $httpClient->get($attachment->src_lightbox, ['save_to' => $filename]);
+                if ($result->getStatusCode() == 200 && filesize($filename)) {
+                    $size = @getimagesize($filename);
+                    if (!is_array($size) || $size[0] < 200 || $size[1] < 200 || !preg_match("/^image\/(jpeg|jpg)$/isu", $size['mime'])) {
+                        @unlink($filename);
+                        continue;
+                    }
+                    rename($filename, $filename . ".jpeg");
+                    $filename .= ".jpeg";
+                    
+                    $upload = $connection->upload("media/upload", array('media' => $filename));
+                    $medias[] = $upload->media_id;
+                } else {
+                    @unlink($filename);
+                }
+            } catch (\GuzzleHttp\Exception $e) {
+                @unlink($filename);
+            }
+        }
+
+        $tags = [];
+        
+        $tags[] = $advert->type_data->title;
+
+        $tags[] = $advert->city->title;
+
+        if (!empty($advert->metro->title)) {
+            $tags[] = $advert->metro->title;
+        }
+
+        $tags = array_map(function($value) {
+            $value = '#' . preg_replace('/\s+/isu', "_", trim(htmlspecialchars_decode($value)));
+            $value = preg_replace("/[^\w\_#]+/isu", '', $value);
+            $value = mb_strtolower($value, 'UTF-8');
+            return $value;
+        }, $tags);
+
+        $tags = array_unique($tags);
+        $tags = array_chunk($tags, 9);
+        $tags = $tags[0];
+        
+        $messageLimit = 117;
+
+        if (!empty($medias)) {
+            $messageLimit -= 23;
+        }
+
+        $message = '';
+
+        $maxTags = 7;
+
+        foreach ($tags as $tag) {
+
+            if (mb_strlen($message . $tag, 'UTF-8') + 1 >= $messageLimit) {
+                continue;
+            }
+
+            if ($maxTags < 0) {
+                continue;
+            }
+
+            $maxTags--;
+            $message .= $tag . ' ';
+        }
+
+        $text = trim(str_replace('<br>', PHP_EOL, html_entity_decode(htmlspecialchars_decode($advert->text)))) . PHP_EOL;
+        
+        if (mb_strlen($message, 'UTF-8') < $messageLimit - 2) {
+            $message .= mb_substr($text, 0, $messageLimit - mb_strlen($message, 'UTF-8') - 1, 'UTF-8') . ' ';
+        }
+
+        echo "message:" . mb_strlen($message) . PHP_EOL;
+
+        $message .= Yii::app()->createAbsoluteUrl('items/item', array('city' => $advert->city->link, 'type' => $advert->type_data->link, 'link' => $advert->link, 'id' => $advert->id));
+
+        $params = array(
+            "status" => $message,
+        );
+
+        if (!empty($medias)) {
+            $params['media_ids'] = implode(",", $medias);
+        }
+
+        $status = $connection->post("statuses/update", $params);
+        if (!empty($status->id)) {
+            $advert->export_tweet_status_id = $status->id;
+            $advert->save();
+        }
+        var_dump($params);
+        var_dump($status);
     }
 
 }

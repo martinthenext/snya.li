@@ -89,7 +89,7 @@ class City
             );
             $criteria->limit = 1;
             
-            if ($cityModel = Cities::model()->find($cityCriteria)) {
+            if ($cityModel = Cities::model()->find($criteria)) {
                 // Помечаем успешное сопоставление города в базах
                 $cityModel->with_geo = 1; 
                 $cityModel->geo_city_id = (int) $city['city']['id'];

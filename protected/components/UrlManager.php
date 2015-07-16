@@ -10,9 +10,24 @@ class UrlManager extends CUrlManager
 	 */
 	public function translitUrl($str)
 	{
-		$translit = transliterator_transliterate('Any-Latin; Lower()', $str);
-		$link = substr(preg_replace("~[^a-z0-9_\-]+~", "-", trim($translit)), 0, 200);
-        return urlencode($link);
+        $replaces = array(
+            'ч'=>'ch',
+            'ё'=>'e',
+            'ж'=>'zh',
+            'ш'=>'sh',
+            'щ'=>'shch',
+            'ъ'=>'-',
+            'ь'=>'-',
+            'э'=>'e',
+            'ю'=>'yu',
+            'я'=>'ya',
+        );
+        $str = mb_strtolower($str, 'UTF-8');
+        $str = str_ireplace(array_keys($replaces), $replaces, $str);
+		$str = transliterator_transliterate('Any-Latin; Lower()', $str);
+        $str = substr(preg_replace("~[^a-z0-9_\-]+~", "-", trim($str)), 0, 200);
+		$str = urlencode($str);
+        return str_replace("+", "%2B", $str);
 	}
 
 }

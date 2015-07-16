@@ -56,7 +56,7 @@ class SitemapCommand extends CConsoleCommand
         foreach ($sitemapList as $id => $urls) {
             $this->_createSitemap($id, $urls);
             $sitemaps[] = [
-                'loc' => "http://snya.li/sitemaps/sitemap{$id}.xml.gz",
+                'loc' => Yii::app()->urlManager->baseUrl."/sitemaps/sitemap{$id}.xml.gz",
                 'lastmod' => date("Y-m-d\TH:i:s+00:00"),
             ];
         }

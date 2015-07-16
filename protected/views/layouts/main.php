@@ -4,7 +4,8 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-
+        <meta name="google-site-verification" content="rdruda66FbY1tGpCJdSJcN-31odAxCloUqs6nWfkw_s" />
+        <meta name="google-site-verification" content="OldNbJax8LFNl64eq6_-iCDFHHHFJ6zJNZ5m3D1_ASw" />
         <title><?= $this->pageTitle ?></title>
 
         <!--[if lt IE 9]>
@@ -21,8 +22,12 @@
         <!-- Fixed navbar -->
         <?php $this->widget('application.widgets.Navbar', $this->navbarOptions); ?>
         <div class="container theme-showcase" role="main">
-            
+
             <?= $content ?>
+            
+            <a href="https://twitter.com/snyali_snyali" class="twitter-follow-button" data-show-count="false">Follow @snyali_snyali</a>
+            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+            
         </div> <!-- /container -->
 
         <div class="modal fade" id="select-city" tabindex="-1" role="dialog" aria-labelledby="select-city-label" aria-hidden="true">
@@ -63,11 +68,12 @@
             (function (d, w, c) {
                 (w[c] = w[c] || []).push(function () {
                     try {
-                        w.yaCounter31084356 = new Ya.Metrika({
-                            id: 31084356,
+                        w.yaCounter18742765 = new Ya.Metrika({
+                            id: 18742765,
                             clickmap: true,
                             trackLinks: true,
-                            accurateTrackBounce: true
+                            accurateTrackBounce: true,
+                            webvisor: true
                         });
                     } catch (e) {
                     }
@@ -89,7 +95,7 @@
                 }
             })(document, window, "yandex_metrika_callbacks");
         </script>
-        <noscript><div><img src="https://mc.yandex.ru/watch/31084356" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+        <noscript><div><img src="https://mc.yandex.ru/watch/18742765" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
         <!-- /Yandex.Metrika counter -->
     </body>
 </html>

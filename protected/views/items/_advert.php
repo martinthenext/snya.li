@@ -11,8 +11,9 @@
             <?php if (!empty($data->vk_owner_avatar)): ?>
                 <div class="col-lg-2 col-md-2">
                     <a href="//vk.com/id<?= $data->vk_owner_id ?>" target="_blank">
-                        <img class="media-object" src="<?= $data->vk_owner_avatar ?>" alt="<?= $data->vk_owner_first_name . ' ' . $data->vk_owner_last_name ?> title="<?= $data->vk_owner_first_name . ' ' . $data->vk_owner_last_name ?>">
+                        <img class="img-circle" src="<?= $data->vk_owner_avatar ?>" alt="<?= CHtml::encode($data->vk_owner_first_name . ' ' . $data->vk_owner_last_name) ?>" title="<?= CHtml::encode($data->vk_owner_first_name . ' ' . $data->vk_owner_last_name) ?>" />
                     </a>
+                    <br />
                     <a href="//vk.com/id<?= $data->vk_owner_id ?>" target="_blank"><?= $data->vk_owner_first_name ?></a>
                     <?php foreach ($data->contacts as $contact): ?>
                                                                     <!--<span class="btn btn-xs btn-info"><?= $contact->value ?></span>-->

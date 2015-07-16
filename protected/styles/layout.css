@@ -38,6 +38,7 @@ body{
 
 .img-thumbnail {
     height: 80px !important;
+    min-width: 50px;
 }
 
 .media-show-panel {

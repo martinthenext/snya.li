@@ -6,6 +6,7 @@ return array(
     'urlSuffix' => '',
     'class' => 'UrlManager',
     'rules' => array(
+        'items/test'=>'items/test',
         // Страница объявления
         '/<city[\w\-]+>/<type[\w\-]+>/<link[\w\-]+>_<id\d+>'=>'items/item',
         

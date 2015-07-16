@@ -1,3 +1,4 @@
 User-agent: *
 Allow: * 
-Sitemap: http://snya.li/sitemaps/sitemapindex.xml
+Sitemap: https://snya.li/sitemaps/sitemapindex.xml
+Host: https://snya.li
