@@ -50,6 +50,14 @@ class Adverts extends CActiveRecord
      */
     public $userData;
 
+    /**
+     * @todo Определить необходимый список ключевых слов и искать их в тексте
+     * @var array ключевые слова для meta
+     */
+    public $defaultKeywords = array(
+        'дом', 'квартиру', 'жилье'
+    );
+    
     public static function model($className = __CLASS__)
     {
         return parent::model($className);
@@ -492,7 +500,32 @@ class Adverts extends CActiveRecord
 
         return $text;
     }
+    
+    /**
+     * 
+     * @return string meta keywords content
+     */
+    public function getKeywords()
+    {
+        $keywords = array();
+        foreach ($this->getTags() as $tag) {
+            $keywords[] = $tag['title'];
+        }
+        $keywords = array_merge($keywords, $this->defaultKeywords);
+        
+        return mb_substr(CHtml::encode(implode(", ", $keywords)), 0, 255);
+    }
 
+
+    /**
+     * 
+     * @return string meta description content
+     */
+    public function getShortDescription()
+    {
+        return mb_substr(CHtml::encode(strip_tags(preg_replace("/\.{3}$/isu", '', $this->getShortContent()))), 0, 255);
+    }
+    
     /**
      * Возвращает похожие объявления
      * @todo Доработать алгоритм выбора похожих

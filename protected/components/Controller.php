@@ -11,6 +11,9 @@ class Controller extends CController
     public $cities;
     public $types;
 
+    public $pageDescription;
+    public $pageKeywords;
+    
     public function beforeAction($action)
     {
         City::run();
