@@ -27,8 +27,8 @@
             <?php if (!empty($data->attachments)): ?>
                 <div class="col-lg-2 col-md-2">
                     <?php foreach ($data->attachments as $attachment): ?>
-                        <a class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="Фотографии">
-                            <img src="<?= $attachment->src ?>" class="img-thumbnail" />
+                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="Фотографии">
+                            <img itemprop="contentUrl" src="<?= $attachment->src ?>" class="img-thumbnail" />
                         </a>
                     <?php endforeach; ?>
                     <script type="text/javascript">
