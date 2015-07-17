@@ -6,6 +6,7 @@ return array(
     'urlSuffix' => '',
     'class' => 'UrlManager',
     'rules' => array(
+        'admin'=>'admin/index',
         'admin/<_a>'=>'admin/<_a>',
         'user/<_a>'=>'user/<_a>',
         'items/test'=>'items/test',
