@@ -23,11 +23,16 @@ return array(
         'db' => require dirname(__FILE__) . '/mysql.php',
         'sphinx' => require dirname(__FILE__) . '/sphinx.php',
         'urlManager' => require dirname(__FILE__) . '/url.php',
-        'loid' => array(
-            'class' => 'ext.lightopenid.loid',
+        'authManager' => array(
+            'class' => 'PhpAuthManager',
+            'defaultRoles' => array('guest'),
         ),
         'user' => array(
+            'class' => 'WebUser',
             'loginUrl' => array('user/login'),
+        ),
+        'loid' => array(
+            'class' => 'ext.lightopenid.loid',
         ),
         'eauth' => array(
             'class' => 'ext.eauth.EAuth',
