@@ -75,7 +75,7 @@ class Controller extends CController
             );
         }
 
-        return array(
+        $options = array(
             'label' => CHtml::image("/images/logo.png", $advertType->title),
             'items' => array(
                 array(
@@ -92,6 +92,22 @@ class Controller extends CController
             ),
             'withoutSearch' => $this->_navbarWithoutSearch,
         );
+        
+        if (Yii::app()->user->checkAccess('admin')) {
+            $options['items'][] = array(
+                'label' => 'Админка',
+                'url' => Yii::app()->createUrl('admin/index'),
+            );
+        }
+        
+        if (!Yii::app()->user->isGuest) {
+            $options['items'][] = array(
+                'label' => 'Выход ('.Yii::app()->user->getState('name').')',
+                'url' => Yii::app()->createUrl('user/logout'),
+            );
+        }
+        
+        return $options;
     }
 
 }
