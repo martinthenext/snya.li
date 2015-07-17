@@ -3,3 +3,6 @@
 /www/assets/
 /protected/runtime/
 /composer.lock
+/logs
+/sphinx
+/www/sitemaps
