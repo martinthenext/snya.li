@@ -16,7 +16,7 @@
                     <br />
                     <a href="//vk.com/id<?= $data->vk_owner_id ?>" target="_blank"><?= $data->vk_owner_first_name ?></a>
                     <?php foreach ($data->contacts as $contact): ?>
-                                                                    <!--<span class="btn btn-xs btn-info"><?= $contact->value ?></span>-->
+                                                                            <!--<span class="btn btn-xs btn-info"><?= $contact->value ?></span>-->
                         <br /><?= $contact->button ?>
                     <?php endforeach; ?>
                 </div>
@@ -69,10 +69,12 @@
             </div>
         </div>
 
-        <?php if (Yii::app()->user->hasState('admin') || Yii::app()->user->hasState('moderator')): ?>
+        <?php if (Yii::app()->user->checkAccess('moderator')): ?>
             <div class="row">
-                <button class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Забанить пользователя</button>
-                <button class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Отключить объявление</button>
+                <div class="col-lg-12">
+                    <a target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/addblacklist", array('vk_user_id' => $data->vk_owner_id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Забанить пользователя</a>
+                    <a target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/disableitem", array('item_id' => $data->id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Отключить объявление</a>
+                </div>
             </div>
         <?php endif; ?>
     </div>
