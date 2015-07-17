@@ -265,11 +265,12 @@ class ItemsController extends Controller
     {
         $criteria = new CDbCriteria();
         $criteria->order = 't.title asc';
+        echo "<pre>";
         foreach (Cities::model()->findAll($criteria) as $city) {
 
-            echo $city->id.' # '.$city->title.' # '.$city->link."<br />".PHP_EOL;
+            echo $city->title.":\t ".$city->link.PHP_EOL;
         }
-        
+        echo "</pre>";
         
     }
 }

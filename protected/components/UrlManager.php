@@ -16,13 +16,14 @@ class UrlManager extends CUrlManager
             'ж'=>'zh',
             'ш'=>'sh',
             'щ'=>'shch',
-            'ъ'=>'-',
-            'ь'=>'-',
+            'ъ'=>'',
+            'ь'=>'',
             'э'=>'e',
             'ю'=>'yu',
             'я'=>'ya',
         );
         $str = mb_strtolower($str, 'UTF-8');
+        $str = preg_replace("/ь(а|е|ё|и|й|о|у|ы|э|ю|я)/isu", "y$1", $str);
         $str = str_ireplace(array_keys($replaces), $replaces, $str);
 		$str = transliterator_transliterate('Any-Latin; Lower()', $str);
         $str = substr(preg_replace("~[^a-z0-9_\-]+~", "-", trim($str)), 0, 200);
