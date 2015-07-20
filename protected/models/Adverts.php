@@ -150,6 +150,7 @@ class Adverts extends CActiveRecord
                 'span', 'strong', 'br', 'ul', 'li'
             )
         );
+        
         return $purifier->purify($content);
     }
 

@@ -291,7 +291,7 @@ class ItemsController extends Controller
         
         if (!empty(Yii::app()->request->getPost('Adverts'))) {
             $item->attributes = Yii::app()->request->getPost('Adverts');
-
+            
             /**
              * @todo Отвязать объявления от vk
              */
