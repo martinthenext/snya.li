@@ -106,6 +106,7 @@ class PostCommand extends CConsoleCommand
         $text = preg_replace("/!+/isu", "!", $advert->text);
         $text = preg_replace("/\<br\>/isu", PHP_EOL, $text);
         $text = html_entity_decode(htmlspecialchars_decode($advert->text));
+        $text = strip_tags($text);
         $text = preg_replace("/[\x{fe00}-\x{fe0f}]/u", '', $text);
         $post['message'] .= trim($text).PHP_EOL;
         $post['message'] .= 'Контакты: ' . $advert->vk_owner_first_name . ' ' . $advert->vk_owner_last_name . ' ';
