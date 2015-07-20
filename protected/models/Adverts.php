@@ -36,6 +36,11 @@ class Adverts extends CActiveRecord
             'Relevance',
             'Contacts',
         ),
+        'add' => array(
+            'Metro',
+            'Relevance',
+            'Contacts',
+        ),
     );
 
     /**
@@ -57,7 +62,7 @@ class Adverts extends CActiveRecord
     public $defaultKeywords = array(
         'дом', 'квартиру', 'жилье'
     );
-    
+
     public static function model($className = __CLASS__)
     {
         return parent::model($className);
@@ -68,26 +73,99 @@ class Adverts extends CActiveRecord
         return "{{adverts}}";
     }
 
+    /**
+     * 
+     * @todo Добавить загрузку данных о пользователе!
+     */
     public function rules()
     {
         return array(
-            array('vk_post_id', 'unique', 'allowEmpty' => false, 'criteria' => array(
+            /**
+             * Начало набора правил для формы
+             */
+            array('type, text, city_id', 'safe', 'on' => 'add'),
+            array('type, text, city_id', 'required', 'on' => 'add'),
+            array('text', 'filter',
+                'filter' => array($this, '_filterText'),
+                'on' => 'add',
+            ),
+            array('text', 'length',
+                'min' => 20,
+                'max' => 2000,
+                'on' => 'add',
+            ),
+            array('need_moderate', 'default', 'value' => 1, 'on' => 'add'),
+            array('created', 'default', 'value' => time(), 'on' => 'add'),
+            /**
+             * Конец набора правил для формы
+             */
+            /**
+             * Начало набора правил для импорта
+             */
+            array('text', 'length', 'min' => 10, 'on' => 'import'),
+            array('vk_post_id', 'unique',
+                'allowEmpty' => false,
+                'criteria' => array(
                     'condition' => 't.vk_owner_id = :vk_owner_id',
                     'params' => array('vk_owner_id' => $this->vk_owner_id)
-                )),
-            array('vk_owner_first_name, vk_owner_last_name', 'length', 'min' => 1),
-            array('text', 'length', 'min' => 10),
-            array('metro_id, vk_post_id, vk_owner_id, text, city_id, type, created, updated, enabled', 'safe'),
-            array('enabled', 'default', 'value' => 1),
+                ),
+                'on' => 'import',
+            ),
+            array('vk_owner_first_name, vk_owner_last_name', 'length',
+                'min' => 1,
+                'on' => 'import',
+            ),
+            array('metro_id, vk_post_id, vk_owner_id, text, city_id, type, created, updated, enabled', 'safe',
+                'on' => 'import',
+            ),
+            array('enabled', 'default', 'value' => 1, 'on' => 'import'),
+            array('vk_owner_id, vk_post_id, city_id', 'required', 'on' => 'import'),
+            array('need_moderate', 'default', 'value' => 0, 'on' => 'import'),
+            /**
+             * Конец набора правил для импорта
+             */
+            /**
+             * Общие правила для всех методов добавления
+             */
             array('metro_id', 'default', 'value' => 0),
-            array('vk_owner_id, vk_post_id, city_id', 'required'),
             array('relevance', 'default', 'value' => -1000),
+        );
+    }
+
+    /**
+     * Фильтрует текст объявления, отправленного через форму
+     * @param string $content
+     * @return string
+     */
+    public function _filterText($content)
+    {
+        $content = str_replace('<p>', '', $content);
+        $content = str_replace('</p>', '<br>', $content);
+        $purifier = new CHtmlPurifier();
+        $purifier->options = array(
+            'AutoFormat.RemoveEmpty' => true,
+            'AutoFormat.RemoveEmpty.RemoveNbsp' => true,
+            'AutoFormat.RemoveSpansWithoutAttributes' => true,
+            'HTML.AllowedElements' => array(
+                'span', 'strong', 'br', 'ul', 'li'
+            )
+        );
+        
+        return $purifier->purify($content);
+    }
+
+    public function attributeLabels()
+    {
+        return array(
+            'type' => 'Тип объявления',
+            'text' => 'Текст объявления',
+            'city_id' => 'Город'
         );
     }
 
     public function afterSave()
     {
-        if ($this->isNewRecord && $this->scenario == 'import') {
+        if ($this->isNewRecord && ($this->scenario == 'import' || $this->scenario == 'add')) {
 
             foreach ($this->_newContacts as $contact) {
                 $model = new Contacts();
@@ -500,7 +578,7 @@ class Adverts extends CActiveRecord
 
         return $text;
     }
-    
+
     /**
      * 
      * @return string meta keywords content
@@ -512,10 +590,9 @@ class Adverts extends CActiveRecord
             $keywords[] = $tag['title'];
         }
         $keywords = array_merge($keywords, $this->defaultKeywords);
-        
+
         return mb_substr(CHtml::encode(implode(", ", $keywords)), 0, 255);
     }
-
 
     /**
      * 
@@ -525,7 +602,7 @@ class Adverts extends CActiveRecord
     {
         return mb_substr(CHtml::encode(strip_tags(preg_replace("/\.{3}$/isu", '', $this->getShortContent()))), 0, 255);
     }
-    
+
     /**
      * Возвращает похожие объявления
      * @todo Доработать алгоритм выбора похожих

@@ -5,7 +5,30 @@ class ItemsController extends Controller
 
     public $imagesAsset = '';
 
-    
+    public function filters()
+    {
+        return array(
+            'accessControl',
+        );
+    }
+
+    public function accessRules()
+    {
+        return array(
+            array('allow',
+                'actions' => array('add'),
+                'roles' => array('user'),
+            ),
+            array('deny',
+                'actions' => array('add'),
+                'roles' => array('guest'),
+            ),
+            array('allow',
+                'users' => array('*'),
+            ),
+        );
+    }
+
     public function beforeAction($action)
     {
 
@@ -14,13 +37,13 @@ class ItemsController extends Controller
 
     public function actionCityChange($city)
     {
-        if ($cityModel = Cities::model()->findByAttributes(array('link'=>$city))) {
+        if ($cityModel = Cities::model()->findByAttributes(array('link' => $city))) {
             City::setCurrentCity($cityModel->id);
         }
-        
+
         City::redirect();
     }
-    
+
     /**
      * Список объявлений по городу
      * @param string $type
@@ -32,23 +55,23 @@ class ItemsController extends Controller
      */
     public function actionIndex($type = null, $city = null)
     {
-        
+
         if (empty($city) && !Yii::app()->request->isAjaxRequest) {
             if (!preg_match("/(yandex\.com|Googlebot)/isu", Yii::app()->request->getUserAgent())) {
                 City::redirect();
             }
         }
-        
+
         if (!empty($type)) {
             $this->_type = AdvertTypes::model()->findByAttributes(array('link' => $type));
         }
-        
+
         $city = empty($city) ? 'moskva' : $city;
-        
-        if (!Cities::model()->countByAttributes(array('link'=>$city))) {
+
+        if (!Cities::model()->countByAttributes(array('link' => $city))) {
             throw new CHttpException(404, 'Страница не найдена');
         }
-        
+
         $this->processPageRequest('page');
         $this->pageTitle = Yii::app()->name . ' &gt; ' . 'Объявления';
         $this->registers();
@@ -56,7 +79,7 @@ class ItemsController extends Controller
 
 
         $criteria = new CDbCriteria();
-        
+
         if (!empty($city)) {
             $criteria->compare('city.link', $city);
         }
@@ -96,7 +119,7 @@ class ItemsController extends Controller
 
     public function actionItem($city, $type, $id)
     {
-        
+
         // Регаем bootstrap
         $bootstrap = $this->assetManager->publish(Yii::app()->params->vendorPath . '/twitter/bootstrap/dist/');
         $stylesheet = $this->assetManager->publish(Yii::app()->basePath . '/styles/');
@@ -128,7 +151,7 @@ class ItemsController extends Controller
         $this->pageTitle = Yii::app()->name . ' &gt; ' . 'Объявления';
         $this->pageKeywords = $advert->keywords;
         $this->pageDescription = $advert->shortDescription;
-        
+
         $this->render('item', array(
             'advert' => $advert,
         ));
@@ -156,47 +179,47 @@ class ItemsController extends Controller
 
         $this->clientScript->registerScriptFile($jquery . '/jquery.min.js', CClientScript::POS_HEAD);
         $this->clientScript->registerScriptFile($bootstrap . '/js/bootstrap.min.js', CClientScript::POS_HEAD);
-        $this->clientScript->registerScriptFile($lightbox . '/bootstrap-media-lightbox.js?time='.time(), CClientScript::POS_HEAD);
+        $this->clientScript->registerScriptFile($lightbox . '/bootstrap-media-lightbox.js?time=' . time(), CClientScript::POS_HEAD);
         $this->clientScript->registerScriptFile($js . '/media.js?rand=' . time(), CClientScript::POS_HEAD);
     }
 
     public function actionSearch($search = null, $city = null, $type = null)
     {
-        
+
         if (!empty($type)) {
             $this->_type = AdvertTypes::model()->findByAttributes(array('link' => $type));
         }
-        
-        if (preg_match("/(\?|&)/isu",Yii::app()->request->url)) {
-            
+
+        if (preg_match("/(\?|&)/isu", Yii::app()->request->url)) {
+
             $params = array(
-                'search'=>trim($search),
+                'search' => trim($search),
             );
-            
+
             if (!empty($city) && preg_match("/^[\w\-\_]+$/isu", $city)) {
                 $params['city'] = $city;
             } else {
                 $params['city'] = City::getModel()->link;
             }
-            
+
             if (!empty($this->_type->link)) {
                 $params['type'] = $this->_type->link;
             }
-            
+
             Yii::app()->request->redirect(Yii::app()->createAbsoluteUrl("items/search", $params));
         }
-        
-        
+
+
         $this->_navbarWithoutSearch = true;
-        
-        
-        
+
+
+
         $this->processPageRequest('page');
         $this->pageTitle = Yii::app()->name . ' &gt; ' . 'Поиск объявлений';
         $this->registers();
 
 
-        
+
 
         $criteria = new CDbCriteria();
 
@@ -205,17 +228,17 @@ class ItemsController extends Controller
         $ids = array();
 
         $params = array();
-        
+
         if (!empty(City::getModel()->id)) {
             $params['city_id'] = (int) City::getModel()->id;
         }
-        
+
         if (!empty($city)) {
             if ($city = Cities::model()->findByAttributes(array('link' => $city))) {
                 $params['city_id'] = $city->id;
             }
         }
-        
+
         if (!empty($type)) {
             if ($type = AdvertTypes::model()->findByAttributes(array('link' => $type))) {
                 $params['type'] = $type->id;
@@ -261,6 +284,38 @@ class ItemsController extends Controller
         }
     }
 
+    public function actionAdd()
+    {
+        $this->registers();
+        $item = new Adverts('add');
+        
+        if (!empty(Yii::app()->request->getPost('Adverts'))) {
+            $item->attributes = Yii::app()->request->getPost('Adverts');
+            
+            /**
+             * @todo Отвязать объявления от vk
+             */
+            if (Yii::app()->user->model->service == 'vkontakte') {
+                $item->vk_owner_id = Yii::app()->user->model->service_id;
+            } else {
+                Yii::app()->user->logout();
+                Yii::app()->user->redirect('/');
+            }
+            
+            $item->enabled = (int) Yii::app()->user->checkAccess('moderator');
+            
+            if ($item->validate()) {
+                $item->save(false);
+                $this->render('add_success');
+                exit();
+            }
+        }
+        
+        $this->render('add', array(
+            'item' => $item,
+        ));
+    }
+
     public function actionTest()
     {
         $criteria = new CDbCriteria();
@@ -268,9 +323,9 @@ class ItemsController extends Controller
         echo "<pre>";
         foreach (Cities::model()->findAll($criteria) as $city) {
 
-            echo $city->title.":\t ".$city->link.PHP_EOL;
+            echo $city->title . ":\t " . $city->link . PHP_EOL;
         }
         echo "</pre>";
-        
     }
+
 }

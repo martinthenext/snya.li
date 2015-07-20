@@ -70,3 +70,13 @@ body{
 .panel-body.search {
     padding: 10px;
 }
+
+span.required {
+    color: #a94442;
+    font-size: small;
+}
+
+input.error, select.error {
+    color: #a94442;
+    border-color: #a94442;
+}
