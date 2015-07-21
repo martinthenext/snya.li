@@ -30,11 +30,13 @@
             'htmlOptions' => array(
                 'class' => 'inline-form',
                 'errorCss' => 'has-error',
+                'enctype' => 'multipart/form-data',
             ),
         ));
         ?>
 
         <?= $form->errorSummary($item, null, null, ['class' => 'alert alert-danger']); ?>
+        <?= $form->errorSummary($image, null, null, ['class' => 'alert alert-danger']); ?>
         <div class="form-group">
             <?= $form->labelEx($item, 'type', ['class' => 'control-label']) ?>
             <?=
@@ -54,14 +56,20 @@
             ]);
             ?>
         </div>
-        
+
         <div class="form-group">
             <?= $form->labelEx($item, 'text', ['class' => 'control-label']) ?>
             <?= $form->textArea($item, 'text', ['class' => 'form-control']); ?>
         </div>
 
+        <div class="form-group">
+            <?= $form->labelEx($image, 'images[]', ['class' => 'control-label']) ?>
+            <?= $form->fileField($image, 'images[]', ['multiple' => true]); ?>
+            <p class="help-block">Вы можете загрузить до <?=Images::MAX_FILES?> фотографий в формате png или jpg.</p>
+        </div>
+
         <span class="help-block">Поля, отмеченные звездочкой <span class="required">*</span>, обязательны для заполнения.</span>
-        
+
         <div class="form-group">
             <button type="submit" class="btn btn-primary">Сохранить</button>
         </div>

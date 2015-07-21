@@ -36,7 +36,18 @@
                     </script>
                 </div>
             <?php endif; ?>
-
+            <?php if (!empty($data->images)): ?>
+                <div class="col-lg-2 col-md-2">
+                    <?php foreach ($data->images as $image): ?>
+                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $image->getSrc(Images::IMAGE_BIG) ?>" title="Фотографии">
+                            <img itemprop="contentUrl" src="<?= $image->getSrc(Images::IMAGE_THUMB) ?>" class="img-thumbnail" />
+                        </a>
+                    <?php endforeach; ?>
+                    <script type="text/javascript">
+                        $('.lightbox-<?= $data->id ?>').lightbox();
+                    </script>
+                </div>
+            <?php endif; ?>
         </div>
         <?php if (!isset($notHide)) : ?>
 

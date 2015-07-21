@@ -205,6 +205,7 @@ class Adverts extends CActiveRecord
             'city' => array(self::BELONGS_TO, 'Cities', 'city_id'),
             'type_data' => array(self::BELONGS_TO, 'AdvertTypes', 'type'),
             'attachments' => array(self::HAS_MANY, 'Attachments', array('advert_id' => 'id')),
+            'images' => array(self::HAS_MANY, 'Images', array('advert_id' => 'id')),
             'contacts' => array(self::HAS_MANY, 'Contacts', array('advert_id' => 'id')),
             'metro' => array(self::BELONGS_TO, 'Metro', array('metro_id' => 'id')),
         );
@@ -610,7 +611,7 @@ class Adverts extends CActiveRecord
     public function getSimilars()
     {
         $criteria = new CDbCriteria();
-        $criteria->condition = 't.id != :id and t.city_id = :city_id and t.type = :type and t.created <= :created and t.created >= :created - 30 * 24 * 60 * 60';
+        $criteria->condition = 't.enabled and t.id != :id and t.city_id = :city_id and t.type = :type and t.created <= :created and t.created >= :created - 30 * 24 * 60 * 60';
         $criteria->params = array(
             'city_id' => $this->city_id,
             'type' => $this->type,

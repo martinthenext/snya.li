@@ -88,7 +88,6 @@ class ItemsController extends Controller
             $criteria->compare('type_data.link', $type);
         }
 
-        $criteria->compare('t.enabled', 1);
         $criteria->addNotInCondition('t.city_id', array(0));
         $criteria->addCondition('t.enabled = 1');
         $criteria->order = 't.created desc';
@@ -288,10 +287,10 @@ class ItemsController extends Controller
     {
         $this->registers();
         $item = new Adverts('add');
-        
+        $imageModel = new Images('add');
         if (!empty(Yii::app()->request->getPost('Adverts'))) {
             $item->attributes = Yii::app()->request->getPost('Adverts');
-            
+
             /**
              * @todo Отвязать объявления от vk
              */
@@ -301,18 +300,35 @@ class ItemsController extends Controller
                 Yii::app()->user->logout();
                 Yii::app()->user->redirect('/');
             }
-            
+
             $item->enabled = (int) Yii::app()->user->checkAccess('moderator');
-            
-            if ($item->validate()) {
+
+            $api = new VkApi(4934698, '3djYV1o2nXEQCzydPGTn', '8b17eb5b67e4534cf64cc7ea70a8b488621d1bc38d48db89b77c9c9fa49499a9606d8aee6d34d72feb5d0');
+            $userResult = $api->run('users.get', [
+                'user_ids' => Yii::app()->user->model->service_id,
+                'fields' => 'status,activities,interests,about,city,country,contacts,screen_name,photo_100',
+                    ], false);
+            $userResult = (array) $userResult;
+            if (!empty($userResult[0])) {
+                $item->vk_owner_avatar = !empty($userResult[0]->photo_100) ? $userResult[0]->photo_100 : '';
+                $item->vk_owner_first_name = $userResult[0]->first_name;
+                $item->vk_owner_last_name = $userResult[0]->last_name;
+            }
+            $imageModel->images = UploadedFile::getInstances($imageModel, 'images');
+
+            if ($imageModel->validate() && $item->validate()) {
+
                 $item->save(false);
-                $this->render('add_success');
-                exit();
+                $imageModel->advert_id = $item->id;
+                $imageModel->save(false);
+
+                return $this->render('add_success');
             }
         }
-        
+
         $this->render('add', array(
             'item' => $item,
+            'image' => $imageModel,
         ));
     }
 

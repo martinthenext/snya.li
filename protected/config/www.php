@@ -18,6 +18,8 @@ return array(
     'basePath' => dirname(dirname(__FILE__)),
     'params' => array(
         'vendorPath' => dirname(dirname(dirname(__FILE__))) . '/vendor',
+        'webRoot' => realpath(dirname(__FILE__) . DIRECTORY_SEPARATOR . '../../www'),
+        'imagesStorage' => '/var/www/snya.li/www/images',
     ),
     'components' => array(
         'db' => require dirname(__FILE__) . '/mysql.php',
