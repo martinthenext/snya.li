@@ -30,6 +30,7 @@ return array(
         'user' => array(
             'class' => 'WebUser',
             'loginUrl' => array('user/login'),
+            'allowAutoLogin' => true,
         ),
         'loid' => array(
             'class' => 'ext.lightopenid.loid',

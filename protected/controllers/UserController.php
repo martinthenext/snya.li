@@ -20,7 +20,7 @@ class UserController extends Controller
 
                     if ($identity->authenticate()) {
 
-                        Yii::app()->user->login($identity);
+                        Yii::app()->user->login($identity, 3600*24*7);
 
                         $eauth->redirect();
 
