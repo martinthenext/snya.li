@@ -6,6 +6,10 @@ return array(
     'urlSuffix' => '',
     'class' => 'UrlManager',
     'rules' => array(
+        '/<url:.*>' => [
+            'class' => 'application.components.Redirect',
+        ],
+        'add' => 'items/add',
         'admin' => 'admin/index',
         'admin/<_a>' => 'admin/<_a>',
         'login' => 'user/login',

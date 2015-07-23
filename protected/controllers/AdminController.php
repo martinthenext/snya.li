@@ -34,9 +34,14 @@ class AdminController extends Controller
      * Добавляет источник в черный список
      * @param str $vk_user_id
      */
-    public function actionAddblacklist($vk_user_id)
+    public function actionAddBlacklist($vk_owner_id)
     {
-        
+        Adverts::model()->updateAll(array('enabled'=>0), 'vk_owner_id = :vk_owner_id', array('vk_owner_id'=>$vk_owner_id));
+        $blacklist = new UsersBlacklist();
+        $blacklist->comment = 'Из общего интерфейса';
+        $blacklist->vk_user_id = (int) $vk_owner_id;
+        $blacklist->save(false);
+        echo "OK";
     }
     
     /**
@@ -45,7 +50,11 @@ class AdminController extends Controller
      */
     public function actionDisableitem($item_id)
     {
-        
+        if ($item = Adverts::model()->findByPk($item_id)) {
+            $item->enabled = 0;
+            $item->save(false);
+            echo "OK";
+        }
     }
 
     function registers()

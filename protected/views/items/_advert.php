@@ -26,9 +26,9 @@
             </div>
             <?php if (!empty($data->attachments)): ?>
                 <div class="col-lg-2 col-md-2">
-                    <?php foreach ($data->attachments as $attachment): ?>
-                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="Фотографии">
-                            <img itemprop="contentUrl" src="<?= $attachment->src ?>" class="img-thumbnail" />
+                    <?php foreach ($data->attachments as $key=>$attachment): ?>
+                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>">
+                            <img itemprop="contentUrl" src="<?= $attachment->src ?>" class="img-thumbnail" alt="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>"/>
                         </a>
                     <?php endforeach; ?>
                     <script type="text/javascript">
@@ -36,7 +36,18 @@
                     </script>
                 </div>
             <?php endif; ?>
-
+            <?php if (!empty($data->images)): ?>
+                <div class="col-lg-2 col-md-2">
+                    <?php foreach ($data->images as $key=>$image): ?>
+                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $image->getSrc(Images::IMAGE_BIG) ?>" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>">
+                            <img itemprop="contentUrl" src="<?= $image->getSrc(Images::IMAGE_THUMB) ?>" class="img-thumbnail" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>" alt="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>"/>
+                        </a>
+                    <?php endforeach; ?>
+                    <script type="text/javascript">
+                        $('.lightbox-<?= $data->id ?>').lightbox();
+                    </script>
+                </div>
+            <?php endif; ?>
         </div>
         <?php if (!isset($notHide)) : ?>
 
@@ -72,8 +83,8 @@
         <?php if (Yii::app()->user->checkAccess('moderator')): ?>
             <div class="row">
                 <div class="col-lg-12">
-                    <a target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/addblacklist", array('vk_user_id' => $data->vk_owner_id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Забанить пользователя</a>
-                    <a target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/disableitem", array('item_id' => $data->id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Отключить объявление</a>
+                    <a onclick="return confirm('Точно забанить и отключить объявления?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/addblacklist", array('vk_owner_id' => $data->vk_owner_id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Забанить и отключить его объявления</a>
+                    <a onclick="return confirm('Точно отключить?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/disableitem", array('item_id' => $data->id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Отключить объявление</a>
                 </div>
             </div>
         <?php endif; ?>

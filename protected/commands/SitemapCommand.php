@@ -16,6 +16,8 @@ class SitemapCommand extends CConsoleCommand
             'HTTP_HOST' => 'snya.li',
             'SERVER_NAME' => 'snya.li',
             'SERVER_PROTOCOL' => 'HTTP/1.1',
+            'SCRIPT_FILENAME' => '/index.php',
+            'SCRIPT_NAME' => 'index.php',
             'HTTPS' => 'on',
         );
 
@@ -39,13 +41,19 @@ class SitemapCommand extends CConsoleCommand
                 'lastmod' => date("Y-m-d\TH:i:s+00:00"),
             ]
         ];
+
         $criteria = new CDbCriteria();
         $criteria->condition = "t.enabled = 1";
-        $adverts = Adverts::model()->findAll($criteria);
+        $adverts = Adverts::model()->with(array('city'=>array('joinType'=>'inner join')))->findAll($criteria);
 
         foreach ($adverts as $advert) {
             $urls[] = [
-                'url' => Yii::app()->createAbsoluteUrl('items/item', array('city' => $advert->city->link, 'type' => $advert->type_data->link, 'link' => $advert->link, 'id' => $advert->id)),
+                'url' => Yii::app()->createAbsoluteUrl('items/item', array(
+                    'city' => $advert->city->link, 
+                    'type' => $advert->type_data->link, 
+                    'link' => $advert->link, 
+                    'id' => $advert->id
+                )),
                 'lastmod' => date("Y-m-d\TH:i:s+00:00", $advert->created),
             ];
         }

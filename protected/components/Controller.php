@@ -7,27 +7,25 @@ class Controller extends CController
     protected $_assetManager;
     protected $_type;
     protected $_navbarWithoutSearch = false;
-    
     public $cities;
     public $types;
-
     public $pageDescription = 'Поиск жилья Вконтакте без риелторов';
     public $pageKeywords = 'сдам, сниму, аренду, продам, куплю, квартиру, дом';
-    
+
     public function beforeAction($action)
     {
         City::run();
-        
+
         $criteria = new CDbCriteria();
         $criteria->order = 't.title asc';
-        $criteria->condition = '(select count(a.id) from {{adverts}} a where a.city_id = t.id) > 0';
+        $criteria->condition = '(select count(a.id) from {{adverts}} a where a.city_id = t.id and a.enabled = 1) > 0';
         $this->cities = Cities::model()->cache(86400)->findAll($criteria);
 
         $criteria = new CDbCriteria();
         $criteria->order = 't.title asc';
         $this->types = AdvertTypes::model()->cache(86400)->findAll($criteria);
-        
-        
+
+        header("xDevUserIP:" . Yii::app()->request->getUserHostAddress());
         return parent::beforeAction($action);
     }
 
@@ -64,11 +62,11 @@ class Controller extends CController
         $navAdvertTypes = array();
         foreach ($this->types as $advertType) {
             $urlParams = array('type' => $advertType->link);
-            
+
             if (!empty(City::getModel()->link)) {
                 $urlParams['city'] = City::getModel()->link;
             }
-            
+
             $navAdvertTypes[] = array(
                 'label' => $advertType->title,
                 'url' => Yii::app()->createAbsoluteUrl("items/index", $urlParams),
@@ -92,21 +90,31 @@ class Controller extends CController
             ),
             'withoutSearch' => $this->_navbarWithoutSearch,
         );
-        
+
+
+        $options['items'][] = array(
+            'label' => 'Добавить объявление',
+            'url' => Yii::app()->createUrl('items/add'),
+            'linkOptions' => array(
+                'class' => '',
+            ),
+        );
+
+
         if (Yii::app()->user->checkAccess('admin')) {
             $options['items'][] = array(
                 'label' => 'Админка',
                 'url' => Yii::app()->createUrl('admin/index'),
             );
         }
-        
+
         if (!Yii::app()->user->isGuest) {
             $options['items'][] = array(
-                'label' => 'Выход ('.Yii::app()->user->getState('name').')',
+                'label' => 'Выход (' . Yii::app()->user->getState('name') . ')',
                 'url' => Yii::app()->createUrl('user/logout'),
             );
         }
-        
+
         return $options;
     }
 
