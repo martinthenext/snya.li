@@ -26,9 +26,9 @@
             </div>
             <?php if (!empty($data->attachments)): ?>
                 <div class="col-lg-2 col-md-2">
-                    <?php foreach ($data->attachments as $attachment): ?>
-                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="Фотографии">
-                            <img itemprop="contentUrl" src="<?= $attachment->src ?>" class="img-thumbnail" />
+                    <?php foreach ($data->attachments as $key=>$attachment): ?>
+                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>">
+                            <img itemprop="contentUrl" src="<?= $attachment->src ?>" class="img-thumbnail" alt="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>"/>
                         </a>
                     <?php endforeach; ?>
                     <script type="text/javascript">
@@ -38,9 +38,9 @@
             <?php endif; ?>
             <?php if (!empty($data->images)): ?>
                 <div class="col-lg-2 col-md-2">
-                    <?php foreach ($data->images as $image): ?>
-                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $image->getSrc(Images::IMAGE_BIG) ?>" title="Фотографии">
-                            <img itemprop="contentUrl" src="<?= $image->getSrc(Images::IMAGE_THUMB) ?>" class="img-thumbnail" />
+                    <?php foreach ($data->images as $key=>$image): ?>
+                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $image->getSrc(Images::IMAGE_BIG) ?>" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>">
+                            <img itemprop="contentUrl" src="<?= $image->getSrc(Images::IMAGE_THUMB) ?>" class="img-thumbnail" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>" alt="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>"/>
                         </a>
                     <?php endforeach; ?>
                     <script type="text/javascript">

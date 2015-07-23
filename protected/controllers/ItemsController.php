@@ -68,12 +68,22 @@ class ItemsController extends Controller
 
         $city = empty($city) ? 'moskva' : $city;
 
-        if (!Cities::model()->countByAttributes(array('link' => $city))) {
+        if (!$cityModel = Cities::model()->findByAttributes(array('link' => $city))) {
             throw new CHttpException(404, 'Страница не найдена');
         }
-
+        
         $this->processPageRequest('page');
-        $this->pageTitle = Yii::app()->name . ' &gt; ' . 'Объявления';
+        
+        $this->pageTitle = '';
+        
+        if (!empty($this->_type)) {
+            $this->pageTitle .= $this->_type->subtitle. ' ';
+        }
+        
+        $this->pageTitle .= 'жилье в '.$cityModel->subtitle;
+        
+        $this->pageTitle = mb_strtoupper(mb_substr($this->pageTitle, 0, 1, 'UTF-8'), 'UTF-8') . mb_substr($this->pageTitle, 1);
+        
         $this->registers();
 
 
@@ -147,7 +157,12 @@ class ItemsController extends Controller
             throw new CHttpException(404, 'Объявление не найдено.');
         }
 
-        $this->pageTitle = Yii::app()->name . ' &gt; ' . 'Объявления';
+        $this->pageTitle = $advert->type_data->subtitle . ' жилье в ' . $advert->city->subtitle;
+        
+        if (!empty($advert->metro->title)) {
+            $this->pageTitle .= ' м. ' . $advert->metro->title;   
+        }
+        
         $this->pageKeywords = $advert->keywords;
         $this->pageDescription = $advert->shortDescription;
 
@@ -301,7 +316,7 @@ class ItemsController extends Controller
                 Yii::app()->user->redirect('/');
             }
 
-            $item->enabled = (int) Yii::app()->user->checkAccess('moderator');
+            $item->enabled = 1;
 
             $api = new VkApi(4934698, '3djYV1o2nXEQCzydPGTn', '8b17eb5b67e4534cf64cc7ea70a8b488621d1bc38d48db89b77c9c9fa49499a9606d8aee6d34d72feb5d0');
             $userResult = $api->run('users.get', [
@@ -309,6 +324,7 @@ class ItemsController extends Controller
                 'fields' => 'status,activities,interests,about,city,country,contacts,screen_name,photo_100',
                     ], false);
             $userResult = (array) $userResult;
+            
             if (!empty($userResult[0])) {
                 $item->vk_owner_avatar = !empty($userResult[0]->photo_100) ? $userResult[0]->photo_100 : '';
                 $item->vk_owner_first_name = $userResult[0]->first_name;
@@ -322,7 +338,9 @@ class ItemsController extends Controller
                 $imageModel->advert_id = $item->id;
                 $imageModel->save(false);
 
-                return $this->render('add_success');
+                $item->refresh();
+                Yii::app()->request->redirect(Yii::app()->createAbsoluteUrl('items/item', array('city' => $item->city->link, 'type' => $item->type_data->link, 'link' => $item->link, 'id' => $item->id)));
+                exit();
             }
         }
 
