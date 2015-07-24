@@ -5,7 +5,7 @@ class Helper
 
     public static function ucfirst($str)
     {
-        return mb_strtoupper(mb_substr($str, 0, 1, 'UTF-8')) . mb_substr($str, 1, 'UTF-8');
+        return mb_strtoupper(mb_substr($str, 0, 1, 'UTF-8')) . mb_substr($str, 1);
     }
 
     public static function Time($from, $to = '')
