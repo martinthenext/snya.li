@@ -84,7 +84,7 @@ class Adverts extends CActiveRecord
             /**
              * Начало набора правил для формы
              */
-            array('type, text, city_id, formId', 'safe', 'on' => 'add'),
+            array('type, text, city_id, formId, action_id', 'safe', 'on' => 'add'),
             array('type, text, city_id', 'required', 'on' => 'add'),
             array('text', 'filter',
                 'filter' => array($this, '_filterText'),
@@ -206,7 +206,7 @@ class Adverts extends CActiveRecord
         return array(
             'city' => array(self::BELONGS_TO, 'Cities', 'city_id'),
             'type_data' => array(self::BELONGS_TO, 'AdvertTypes', 'type'),
-            'action' => array(self::BELONGS_TO, 'AdvertActions', 'action_id'),
+            'action' => array(self::BELONGS_TO, 'AdvertActions', array('action_id' => 'id')),
             'attachments' => array(self::HAS_MANY, 'Attachments', array('advert_id' => 'id')),
             'images' => array(self::HAS_MANY, 'Images', array('advert_id' => 'id')),
             'contacts' => array(self::HAS_MANY, 'Contacts', array('advert_id' => 'id')),
@@ -462,6 +462,14 @@ class Adverts extends CActiveRecord
             );
         }
 
+        if (!empty($this->action)) {
+            $tags[] = array(
+                'title' => mb_strtoupper(mb_substr($this->action->title, 0, 1)) . mb_substr($this->action->title, 1),
+                'class' => 'default',
+                'url' => '#',
+            );
+        }
+
         $tags[] = array(
             'title' => $this->type_data->title,
             'class' => 'info',
@@ -590,10 +598,15 @@ class Adverts extends CActiveRecord
     public function getKeywords()
     {
         $keywords = array();
+        if (!empty($this->action)) {
+            $keywords[] = $this->action->subtitle;
+            $keywords[] = $this->action->title;
+        }
         foreach ($this->getTags() as $tag) {
             $keywords[] = $tag['title'];
         }
         $keywords = array_merge($keywords, $this->defaultKeywords);
+        $keywords = array_unique($keywords);
 
         return mb_substr(CHtml::encode(implode(", ", $keywords)), 0, 255);
     }
@@ -616,7 +629,7 @@ class Adverts extends CActiveRecord
     public function getSimilars()
     {
         $criteria = new CDbCriteria();
-        $criteria->condition = 't.enabled and t.id != :id and t.city_id = :city_id and t.type = :type and t.created <= :created and t.created >= :created - 30 * 24 * 60 * 60';
+        $criteria->condition = 't.enabled = 1 and t.id != :id and t.city_id = :city_id and t.type = :type and t.created <= :created and t.created >= :created - 30 * 24 * 60 * 60';
         $criteria->params = array(
             'city_id' => $this->city_id,
             'type' => $this->type,
@@ -626,7 +639,7 @@ class Adverts extends CActiveRecord
         $criteria->order = 't.created desc';
         $criteria->limit = self::LIMIT_SIMILARS;
 
-        return self::model()->cache(24 * 60 * 60)->findAll($criteria);
+        return self::model()->findAll($criteria);
     }
 
 }

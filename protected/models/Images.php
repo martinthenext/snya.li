@@ -23,55 +23,19 @@ class Images extends CActiveRecord
     {
         return array(
             array('images', 'file',
-                'types' => 'jpg, gif, png',
+                'types' => 'jpg, png',
                 'allowEmpty' => true,
-                'maxFiles' => self::MAX_FILES,
-                'tooMany' => 'Вы пытаетесь загрузить слишком много файлов. Загрузить можно не более ' . self::MAX_FILES . '.',
-                'on' => 'add',
+                'on' => 'upload',
+            ),
+            array('name', 'unique',
+                'allowEmpty' => false,
+                'attributeName' => 'name',
+                'caseSensitive' => false,
+                'className' => 'Images',
+                'on' => 'upload',
             ),
             array('created', 'default', 'value' => time()),
         );
-    }
-
-    public function beforeSave()
-    {
-        if ($this->scenario == 'add' && is_array($this->images)) {
-            foreach ($this->images as $image) {
-                if (empty($image) || empty($image->size)) {
-                    continue;
-                }
-                $model = new Images('save');
-                $model->advert_id = $this->advert_id;
-                $model->name = $image->filename;
-                $model->mime_type = $image->type;
-                $model->filesize = $image->size;
-                $model->extension = $image->extensionName;
-
-
-                if (!file_exists(Yii::app()->params->imagesStorage . '/' . $image->path) || !is_dir(Yii::app()->params->imagesStorage . '/' . $image->path)) {
-                    mkdir(preg_replace("/\/$/isu", '', Yii::app()->params->imagesStorage . '/' . $image->path), 0755, true);
-                }
-
-                if ($model->save()) {
-                    $image->saveAs(Yii::app()->params->imagesStorage . '/' . $image->path . $image->filename);
-                }
-
-                
-            }
-            return false;
-        }
-
-        return parent::beforeSave();
-    }
-
-    public function beforeValidate()
-    {
-        return parent::beforeValidate();
-    }
-
-    public function afterValidate()
-    {
-        return parent::afterValidate();
     }
 
     public function attributeLabels()
@@ -84,8 +48,8 @@ class Images extends CActiveRecord
 
     public function getSrc()
     {
-        Yii::app()->request->hostInfo = '//snya.li';
-        return Yii::app()->request->hostInfo . '/images/' . mb_substr($this->name, 0, 2) . '/' . mb_substr($this->name, 2, 2) . '/' . $this->name;
+
+        return '//snya.li/images/' . mb_substr($this->name, 0, 2) . '/' . mb_substr($this->name, 2, 2) . '/' . $this->name;
     }
 
 }
