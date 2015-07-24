@@ -39,12 +39,12 @@ class Contacts extends CActiveRecord
     {
         switch ($this->type) {
             case 'vk':
-                $html = CHtml::openTag('a', array('href'=>  $this->getUrl(), 'target'=>'_blank'));
+                $html = CHtml::openTag('a', array('href'=>  $this->getUrl(), 'target'=>'_blank', 'rel'=>'nofollow'));
                 $html .= '<span class="glyphicon glyphicon-envelope"></span> ВКонтакте';
                 $html .= CHtml::closeTag('a');
                 return $html;
             case 'phone':
-                $html = CHtml::openTag('a', array('href'=>  $this->getUrl()));
+                $html = CHtml::openTag('a', array('href'=>  $this->getUrl(), 'rel'=>'nofollow'));
                 $html .= '<nobr><span class="glyphicon glyphicon-earphone"></span>' . $this->value . '</nobr>';
                 $html .= CHtml::closeTag('a');
                 return $html;

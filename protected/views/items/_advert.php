@@ -11,11 +11,11 @@
             <div class="media" data-media-id="<?= $data->id ?>" <?php if (!isset($notHide)) : ?>style="display: block; overflow: hidden; max-height: 200px;"<?php endif; ?>>
                 <?php if (!empty($data->vk_owner_avatar)): ?>
                     <div class="col-lg-2 col-md-2">
-                        <a href="//vk.com/id<?= $data->vk_owner_id ?>" target="_blank">
+                        <a rel="nofollow" href="//vk.com/id<?= $data->vk_owner_id ?>" target="_blank">
                             <img class="img-circle" src="<?= $data->vk_owner_avatar ?>" alt="<?= CHtml::encode($data->vk_owner_first_name . ' ' . $data->vk_owner_last_name) ?>" title="<?= CHtml::encode($data->vk_owner_first_name . ' ' . $data->vk_owner_last_name) ?>" />
                         </a>
                         <br />
-                        <a href="//vk.com/id<?= $data->vk_owner_id ?>" target="_blank"><?= $data->vk_owner_first_name ?></a>
+                        <a rel="nofollow" href="//vk.com/id<?= $data->vk_owner_id ?>" target="_blank"><?= $data->vk_owner_first_name ?></a>
                         <?php foreach ($data->contacts as $contact): ?>
                                                                                                                 <!--<span class="btn btn-xs btn-info"><?= $contact->value ?></span>-->
                             <br /><?= $contact->button ?>
