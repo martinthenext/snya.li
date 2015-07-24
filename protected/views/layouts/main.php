@@ -150,7 +150,7 @@ foreach ($this->cities as $city) {
                 if (h < 827) {
                     h = 827;
                 }
-                VK.callMethod("resizeWindow", 827, h);
+                VK.callMethod("resizeWindow", 760, h);
 
             }
 
