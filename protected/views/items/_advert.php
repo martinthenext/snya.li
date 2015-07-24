@@ -80,7 +80,7 @@
             <div class="col-md-3 col-lg-3" style="text-align: right;">
                 <div class="time-ago small">
                     <?php if (!empty($data->vk_owner_id) && !empty($data->vk_post_id)): ?>
-                        <a href="//vk.com/wall<?= $data->vk_owner_id ?>_<?= $data->vk_post_id ?>" target="_blank">
+                        <a rel="nofollow" href="//vk.com/wall<?= $data->vk_owner_id ?>_<?= $data->vk_post_id ?>" target="_blank">
                             <?= Helper::Time($data->created) ?>
                         </a>
                     <?php else: ?>
