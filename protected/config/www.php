@@ -24,6 +24,13 @@ return array(
     'components' => array(
         'db' => require dirname(__FILE__) . '/mysql.php',
         'sphinx' => require dirname(__FILE__) . '/sphinx.php',
+        'cache' => array(
+            'class' => 'CMemCache',
+            'serializer' => false,
+            'servers' => array(
+                array('host' => '127.0.0.1', 'port' => 11211, 'weight' => 100),
+            ),
+        ),
         'urlManager' => require dirname(__FILE__) . '/url.php',
         'authManager' => array(
             'class' => 'PhpAuthManager',

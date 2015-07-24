@@ -16,7 +16,7 @@ class ItemsController extends Controller
     {
         return array(
             array('allow',
-                'actions' => array('add'),
+                'actions' => array('add', 'upload'),
                 'roles' => array('user'),
             ),
             array('deny',
@@ -71,19 +71,19 @@ class ItemsController extends Controller
         if (!$cityModel = Cities::model()->findByAttributes(array('link' => $city))) {
             throw new CHttpException(404, 'Страница не найдена');
         }
-        
+
         $this->processPageRequest('page');
-        
+
         $this->pageTitle = '';
-        
+
         if (!empty($this->_type)) {
-            $this->pageTitle .= $this->_type->subtitle. ' ';
+            $this->pageTitle .= $this->_type->subtitle . ' ';
         }
-        
-        $this->pageTitle .= 'жилье в '.$cityModel->subtitle;
-        
+
+        $this->pageTitle .= 'жилье в ' . $cityModel->subtitle;
+
         $this->pageTitle = mb_strtoupper(mb_substr($this->pageTitle, 0, 1, 'UTF-8'), 'UTF-8') . mb_substr($this->pageTitle, 1);
-        
+
         $this->registers();
 
 
@@ -129,7 +129,7 @@ class ItemsController extends Controller
     public function actionItem($city, $type, $id)
     {
 
-        // Регаем bootstrap
+// Регаем bootstrap
         $bootstrap = $this->assetManager->publish(Yii::app()->params->vendorPath . '/twitter/bootstrap/dist/');
         $stylesheet = $this->assetManager->publish(Yii::app()->basePath . '/styles/');
         $jquery = $this->assetManager->publish(Yii::app()->params->vendorPath . '/components/jquery/');
@@ -147,22 +147,23 @@ class ItemsController extends Controller
         $criteria->compare('city.link', $city);
         $criteria->compare('type_data.link', $type);
         $criteria->compare('t.id', $id);
-        $criteria->compare('t.enabled', 1);
 
         $advert = Adverts::model()->with(array('city', 'type_data'))->find($criteria);
 
-        $this->_type = $advert->type_data;
+
 
         if (!$advert) {
             throw new CHttpException(404, 'Объявление не найдено.');
         }
 
-        $this->pageTitle = $advert->type_data->subtitle . ' жилье в ' . $advert->city->subtitle;
-        
+        $this->_type = $advert->type_data;
+
+        $this->pageTitle = $advert->type_data->subtitle . ' ' . (!empty($advert->action) ? ' ' . $advert->action->subtitle : 'жилье') . ' в ' . $advert->city->subtitle;
+
         if (!empty($advert->metro->title)) {
-            $this->pageTitle .= ' м. ' . $advert->metro->title;   
+            $this->pageTitle .= ' м. ' . $advert->metro->title;
         }
-        
+
         $this->pageKeywords = $advert->keywords;
         $this->pageDescription = $advert->shortDescription;
 
@@ -179,13 +180,13 @@ class ItemsController extends Controller
 
     protected function registers()
     {
-        // Регаем bootstrap
+// Регаем bootstrap
         $bootstrap = $this->assetManager->publish(Yii::app()->params->vendorPath . '/twitter/bootstrap/dist/');
         $stylesheet = $this->assetManager->publish(Yii::app()->basePath . '/styles/');
         $jquery = $this->assetManager->publish(Yii::app()->params->vendorPath . '/components/jquery/');
         $lightbox = $this->assetManager->publish(Yii::app()->params->vendorPath . '/bootstrap-plus/bootstrap-media-lightbox/');
         $js = $this->assetManager->publish(Yii::app()->basePath . '/js/');
-        //$this->imagesAsset = $this->assetManager->publish(Yii::app()->basePath . '/images/');
+//$this->imagesAsset = $this->assetManager->publish(Yii::app()->basePath . '/images/');
 
         $this->clientScript->registerCssFile($bootstrap . '/css/bootstrap.min.css');
         $this->clientScript->registerCssFile($lightbox . '/bootstrap-media-lightbox.css');
@@ -195,6 +196,14 @@ class ItemsController extends Controller
         $this->clientScript->registerScriptFile($bootstrap . '/js/bootstrap.min.js', CClientScript::POS_HEAD);
         $this->clientScript->registerScriptFile($lightbox . '/bootstrap-media-lightbox.js?time=' . time(), CClientScript::POS_HEAD);
         $this->clientScript->registerScriptFile($js . '/media.js?rand=' . time(), CClientScript::POS_HEAD);
+
+        return (object) array(
+                    'bootstrap' => $bootstrap,
+                    'stylesheet' => $stylesheet,
+                    'jquery' => $jquery,
+                    'lightbox' => $lightbox,
+                    'js' => $js,
+        );
     }
 
     public function actionSearch($search = null, $city = null, $type = null)
@@ -300,9 +309,15 @@ class ItemsController extends Controller
 
     public function actionAdd()
     {
-        $this->registers();
+        $registers = $this->registers();
+        $this->clientScript->registerScriptFile($registers->js . '/jquery.ui.widget.js', CClientScript::POS_HEAD);
+        $this->clientScript->registerScriptFile($registers->js . '/jquery.iframe-transport.js', CClientScript::POS_HEAD);
+        $this->clientScript->registerScriptFile($registers->js . '/jquery.fileupload.js', CClientScript::POS_HEAD);
+
         $item = new Adverts('add');
+
         $imageModel = new Images('add');
+
         if (!empty(Yii::app()->request->getPost('Adverts'))) {
             $item->attributes = Yii::app()->request->getPost('Adverts');
 
@@ -324,42 +339,118 @@ class ItemsController extends Controller
                 'fields' => 'status,activities,interests,about,city,country,contacts,screen_name,photo_100',
                     ], false);
             $userResult = (array) $userResult;
-            
+
             if (!empty($userResult[0])) {
                 $item->vk_owner_avatar = !empty($userResult[0]->photo_100) ? $userResult[0]->photo_100 : '';
                 $item->vk_owner_first_name = $userResult[0]->first_name;
                 $item->vk_owner_last_name = $userResult[0]->last_name;
             }
-            $imageModel->images = UploadedFile::getInstances($imageModel, 'images');
 
-            if ($imageModel->validate() && $item->validate()) {
+            if ($item->validate()) {
 
                 $item->save(false);
-                $imageModel->advert_id = $item->id;
-                $imageModel->save(false);
+
+                $images = Yii::app()->request->getPost('Images');
+                $userForm = Yii::app()->cache->get($item->formId);
+
+                if (!empty($userForm['images']) && !empty($images) && is_array($images)) {
+                    foreach ($userForm['images'] as $key => $image) {
+                        if (in_array($image['id'], $images)) {
+                            $imageModel = Images::model()->findByPk($image['id']);
+                            if ($imageModel && $imageModel->advert_id == 0 && $imageModel->form_id == $item->formId) {
+                                $imageModel->advert_id = $item->id;
+                                /**
+                                 * @todo Добавить валидацию
+                                 */
+                                $imageModel->save(false);
+                            }
+                        } else {
+                            unset($userForm['images'][$key]);
+                            Yii::app()->cache->set($item->formId, $userForm);
+                        }
+                    }
+                }
 
                 $item->refresh();
                 Yii::app()->request->redirect(Yii::app()->createAbsoluteUrl('items/item', array('city' => $item->city->link, 'type' => $item->type_data->link, 'link' => $item->link, 'id' => $item->id)));
                 exit();
             }
+        } else {
+            $item->formId = md5(time() . microtime() . Yii::app()->user->id);
         }
+
+        $userForm = Yii::app()->cache->get($item->formId);
+        if (empty($userForm['images'])) {
+            $userForm = array('images' => array());
+        }
+        Yii::app()->cache->set($item->formId, $userForm);
 
         $this->render('add', array(
             'item' => $item,
             'image' => $imageModel,
+            'userForm' => $userForm,
         ));
     }
 
-    public function actionTest()
+    public function actionUpload($formId)
     {
-        $criteria = new CDbCriteria();
-        $criteria->order = 't.title asc';
-        echo "<pre>";
-        foreach (Cities::model()->findAll($criteria) as $city) {
-
-            echo $city->title . ":\t " . $city->link . PHP_EOL;
+        if (!preg_match("/^\w{32}$/isu", $formId)) {
+            exit();
         }
-        echo "</pre>";
+
+        $result = array(
+            'files' => array(),
+        );
+
+        $model = new Images('upload');
+        $model->images = UploadedFile::getInstances($model, 'images');
+
+        $imageIds = array();
+
+        if ($model->validate()) {
+            foreach ($model->images as $image) {
+                if (empty($image) || empty($image->size) || empty($image->name)) {
+                    continue;
+                }
+
+                $model = new Images('upload');
+                $model->advert_id = 0;
+                $model->form_id = $formId;
+                $model->name = $image->filename;
+                $model->mime_type = $image->type;
+                $model->filesize = $image->size;
+                $model->extension = $image->extensionName;
+
+
+                if (!file_exists(Yii::app()->params->imagesStorage . '/' . $image->path) || !is_dir(Yii::app()->params->imagesStorage . '/' . $image->path)) {
+                    mkdir(preg_replace("/\/$/isu", '', Yii::app()->params->imagesStorage . '/' . $image->path), 0755, true);
+                }
+
+                $image->saveAs(Yii::app()->params->imagesStorage . '/' . $image->path . $image->filename);
+
+                if ($model->validate()) {
+                    $model->save(false);
+                    $model->refresh();
+
+                    $result['files'][] = array(
+                        'size' => $model->filesize,
+                        'type' => $model->mime_type,
+                        'url' => $model->src,
+                        'id' => $model->id,
+                    );
+                    $imageIds[] = $model->id;
+                    $userForm = Yii::app()->cache->get($formId);
+                    if (empty($userForm['images'])) {
+                        $userForm = array('images' => array());
+                    }
+                    $userForm['images'] = array_merge($userForm['images'], $result['files']);
+                    Yii::app()->cache->set($formId, $userForm);
+                }
+            }
+
+
+            echo json_encode($result);
+        }
     }
 
 }

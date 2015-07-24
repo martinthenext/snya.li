@@ -9,6 +9,7 @@ return array(
         '/<url:.*>' => [
             'class' => 'application.components.Redirect',
         ],
+        'upload' => 'items/upload',
         'add' => 'items/add',
         'admin' => 'admin/index',
         'admin/<_a>' => 'admin/<_a>',
