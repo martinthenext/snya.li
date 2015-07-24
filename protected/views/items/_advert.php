@@ -16,7 +16,7 @@
                     <br />
                     <a href="//vk.com/id<?= $data->vk_owner_id ?>" target="_blank"><?= $data->vk_owner_first_name ?></a>
                     <?php foreach ($data->contacts as $contact): ?>
-                                                                                <!--<span class="btn btn-xs btn-info"><?= $contact->value ?></span>-->
+                                                                                                <!--<span class="btn btn-xs btn-info"><?= $contact->value ?></span>-->
                         <br /><?= $contact->button ?>
                     <?php endforeach; ?>
                 </div>
@@ -83,17 +83,31 @@
                 </div>
             </div>
         </div>
-        <div class="row" style="padding-left: 11px;">
-            <div class="yashare-auto-init" data-yashareDescription="<?=$data->shortDescription?>" data-yashareLink="<?= Yii::app()->createAbsoluteUrl('items/item', array('city' => $data->city->link, 'type' => $data->type_data->link, 'link' => $data->link, 'id' => $data->id)) ?>" data-yashareL10n="ru" data-yashareType="small" data-yashareQuickServices="vkontakte,facebook,twitter,odnoklassniki,moimir,gplus" data-yashareTheme="counter"></div>
+        <div class="row" style="padding-left: 11px; min-height: 30px;">
+            <script type="text/javascript">
+                new Ya.share({
+                    element: 'yandex-share-<?= $data->id ?>',
+                    elementStyle: {
+                        'type': 'small',
+                        'border': true,
+                        'quickServices': ['vkontakte','facebook','twitter','odnoklassniki','moimir','gplus']
+                    },
+                    description: "<?= $data->shortDescription ?>",
+                    link: "<?= Yii::app()->createAbsoluteUrl('items/item', array('city' => $data->city->link, 'type' => $data->type_data->link, 'link' => $data->link, 'id' => $data->id)) ?>",
+                    l10n: 'ru',
+                    theme: 'counter'
+                });
+            </script>
+            <div id="yandex-share-<?= $data->id ?>"></div>
         </div>
-        
+
         <?php if (Yii::app()->user->checkAccess('moderator')): ?>
-                <div class="row">
-                    <div class="col-lg-12">
-                        <a onclick="return confirm('Точно забанить и отключить объявления?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/addblacklist", array('vk_owner_id' => $data->vk_owner_id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Забанить и отключить его объявления</a>
-                        <a onclick="return confirm('Точно отключить?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/disableitem", array('item_id' => $data->id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Отключить объявление</a>
-                    </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <a onclick="return confirm('Точно забанить и отключить объявления?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/addblacklist", array('vk_owner_id' => $data->vk_owner_id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Забанить и отключить его объявления</a>
+                    <a onclick="return confirm('Точно отключить?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/disableitem", array('item_id' => $data->id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Отключить объявление</a>
                 </div>
-            <?php endif; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </article>

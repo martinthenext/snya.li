@@ -9,7 +9,7 @@ $this->widget('zii.widgets.CListView', array(
         'header'=>'',
         'htmlOptions' => array(
             'class' => 'hidden',
-            'style'=>'display: none;',
+            'style'=>'display: none;'
         )
     ),
 ));
