@@ -54,6 +54,7 @@ class Adverts extends CActiveRecord
      * @var type 
      */
     public $userData;
+    public $formId;
 
     /**
      * @todo Определить необходимый список ключевых слов и искать их в тексте
@@ -83,7 +84,7 @@ class Adverts extends CActiveRecord
             /**
              * Начало набора правил для формы
              */
-            array('type, text, city_id', 'safe', 'on' => 'add'),
+            array('type, text, city_id, formId', 'safe', 'on' => 'add'),
             array('type, text, city_id', 'required', 'on' => 'add'),
             array('text', 'filter',
                 'filter' => array($this, '_filterText'),
@@ -150,7 +151,7 @@ class Adverts extends CActiveRecord
                 'span', 'strong', 'br', 'ul', 'li'
             )
         );
-        
+
         return $purifier->purify($content);
     }
 
@@ -159,7 +160,8 @@ class Adverts extends CActiveRecord
         return array(
             'type' => 'Тип объявления',
             'text' => 'Текст объявления',
-            'city_id' => 'Город'
+            'city_id' => 'Город',
+            'action_id' => 'Предмет объявления',
         );
     }
 
@@ -204,6 +206,7 @@ class Adverts extends CActiveRecord
         return array(
             'city' => array(self::BELONGS_TO, 'Cities', 'city_id'),
             'type_data' => array(self::BELONGS_TO, 'AdvertTypes', 'type'),
+            'action' => array(self::BELONGS_TO, 'AdvertActions', 'action_id'),
             'attachments' => array(self::HAS_MANY, 'Attachments', array('advert_id' => 'id')),
             'images' => array(self::HAS_MANY, 'Images', array('advert_id' => 'id')),
             'contacts' => array(self::HAS_MANY, 'Contacts', array('advert_id' => 'id')),
@@ -601,7 +604,9 @@ class Adverts extends CActiveRecord
      */
     public function getShortDescription()
     {
-        return mb_substr(CHtml::encode(strip_tags(preg_replace("/\.{3}$/isu", '', $this->getShortContent()))), 0, 255);
+        $text = $this->getShortContent();
+        $text = str_replace('<br>', ' ', $text);
+        return mb_substr(CHtml::encode(strip_tags(preg_replace("/\.{3}$/isu", '', $text))), 0, 255);
     }
 
     /**
