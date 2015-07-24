@@ -16,7 +16,7 @@
                     <br />
                     <a href="//vk.com/id<?= $data->vk_owner_id ?>" target="_blank"><?= $data->vk_owner_first_name ?></a>
                     <?php foreach ($data->contacts as $contact): ?>
-                                                                            <!--<span class="btn btn-xs btn-info"><?= $contact->value ?></span>-->
+                                                                                <!--<span class="btn btn-xs btn-info"><?= $contact->value ?></span>-->
                         <br /><?= $contact->button ?>
                     <?php endforeach; ?>
                 </div>
@@ -26,9 +26,9 @@
             </div>
             <?php if (!empty($data->attachments)): ?>
                 <div class="col-lg-2 col-md-2">
-                    <?php foreach ($data->attachments as $key=>$attachment): ?>
-                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>">
-                            <img itemprop="contentUrl" src="<?= $attachment->src ?>" class="img-thumbnail" alt="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>"/>
+                    <?php foreach ($data->attachments as $key => $attachment): ?>
+                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>">
+                            <img itemprop="contentUrl" src="<?= $attachment->src ?>" class="img-thumbnail" alt="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>"/>
                         </a>
                     <?php endforeach; ?>
                     <script type="text/javascript">
@@ -38,9 +38,9 @@
             <?php endif; ?>
             <?php if (!empty($data->images)): ?>
                 <div class="col-lg-2 col-md-2">
-                    <?php foreach ($data->images as $key=>$image): ?>
-                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $image->getSrc(Images::IMAGE_BIG) ?>" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>">
-                            <img itemprop="contentUrl" src="<?= $image->getSrc(Images::IMAGE_THUMB) ?>" class="img-thumbnail" title="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>" alt="<?=CHtml::encode($this->pageTitle . ' фото '.($key+1))?>"/>
+                    <?php foreach ($data->images as $key => $image): ?>
+                        <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $image->getSrc(Images::IMAGE_BIG) ?>" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>">
+                            <img itemprop="contentUrl" src="<?= $image->getSrc(Images::IMAGE_THUMB) ?>" class="img-thumbnail" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>" alt="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>"/>
                         </a>
                     <?php endforeach; ?>
                     <script type="text/javascript">
@@ -73,20 +73,27 @@
             </div>
             <div class="col-md-3 col-lg-3" style="text-align: right;">
                 <div class="time-ago small">
-                    <a href="//vk.com/wall<?= $data->vk_owner_id ?>_<?= $data->vk_post_id ?>" target="_blank">
+                    <?php if (!empty($data->vk_owner_id) && !empty($data->vk_post_id)): ?>
+                        <a href="//vk.com/wall<?= $data->vk_owner_id ?>_<?= $data->vk_post_id ?>" target="_blank">
+                            <?= Helper::Time($data->created) ?>
+                        </a>
+                    <?php else: ?>
                         <?= Helper::Time($data->created) ?>
-                    </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
-
+        <div class="row" style="padding-left: 11px;">
+            <div class="yashare-auto-init" data-yashareDescription="<?=$data->shortDescription?>" data-yashareLink="<?= Yii::app()->createAbsoluteUrl('items/item', array('city' => $data->city->link, 'type' => $data->type_data->link, 'link' => $data->link, 'id' => $data->id)) ?>" data-yashareL10n="ru" data-yashareType="small" data-yashareQuickServices="vkontakte,facebook,twitter,odnoklassniki,moimir,gplus" data-yashareTheme="counter"></div>
+        </div>
+        
         <?php if (Yii::app()->user->checkAccess('moderator')): ?>
-            <div class="row">
-                <div class="col-lg-12">
-                    <a onclick="return confirm('Точно забанить и отключить объявления?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/addblacklist", array('vk_owner_id' => $data->vk_owner_id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Забанить и отключить его объявления</a>
-                    <a onclick="return confirm('Точно отключить?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/disableitem", array('item_id' => $data->id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Отключить объявление</a>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <a onclick="return confirm('Точно забанить и отключить объявления?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/addblacklist", array('vk_owner_id' => $data->vk_owner_id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Забанить и отключить его объявления</a>
+                        <a onclick="return confirm('Точно отключить?');" target="_blank" href="<?= Yii::app()->createAbsoluteUrl("admin/disableitem", array('item_id' => $data->id)) ?>" class="btn btn-danger"><span class="glyphicon glyphicon-ban-circle"></span> Отключить объявление</a>
+                    </div>
                 </div>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
     </div>
 </article>

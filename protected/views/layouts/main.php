@@ -29,6 +29,7 @@
 
         </style>
         <script type="text/javascript" src="//vk.com/js/api/xd_connection.js?2"></script>
+        <script type="text/javascript" src="//yastatic.net/share/share.js" charset="utf-8"></script>
     </head>
 
     <body role="document">
