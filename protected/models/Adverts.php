@@ -464,7 +464,7 @@ class Adverts extends CActiveRecord
 
         if (!empty($this->action)) {
             $tags[] = array(
-                'title' => mb_strtoupper(mb_substr($this->action->title, 0, 1)) . mb_substr($this->action->title, 1),
+                'title' => Helper::ucfirst($this->action->title),
                 'class' => 'default',
                 'url' => '#',
             );
