@@ -72,16 +72,15 @@ class Images extends CActiveRecord
         $path = Yii::app()->params['imagesStorage'] . '/' . mb_substr($this->name, 0, 2) . '/' . mb_substr($this->name, 2, 2) . '/';
 
         if (!file_exists($path . $thumbName)) {
-            $wideImage = WideImage::load($path . $this->name);
-            $watermark = WideImage::load(Yii::app()->params['webRoot'] . '/images/logo.png');
-
-            $thumbSize = Images::IMAGE_THUMB;
-
-            $resized = $wideImage->resize($thumbSize[0], $thumbSize[1], 'fill');
-            $resized->saveToFile($path . $thumbName);
+            $thumbName = $this->name;
         }
 
         return '//snya.li/images/' . mb_substr($this->name, 0, 2) . '/' . mb_substr($this->name, 2, 2) . '/' . $thumbName;
+    }
+
+    public function getFilePath()
+    {
+        return Yii::app()->params['imagesStorage'] . '/' . mb_substr($this->name, 0, 2) . '/' . mb_substr($this->name, 2, 2) . '/' . $this->name;
     }
 
 }
