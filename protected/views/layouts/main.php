@@ -11,7 +11,7 @@
         <meta property="og:type" content="website"/>
         <meta property="og:image" content="<?= Yii::app()->request->hostInfo ?>/images/logo.png"/>
         <meta property="og:site_name" content="snya.li"/>
-        <meta property="og:description" content="Продажа, покупка и аренда жилых и нежилых помещений"/>
+        <meta property="og:description" content="<?= $this->pageDescription ?>"/>
         <link rel="canonical" href="<?= Yii::app()->request->hostInfo . Yii::app()->request->requestUri ?>"/>
         <meta property="og:url" content="<?= Yii::app()->request->hostInfo . Yii::app()->request->requestUri ?>"/>
         <title><?= $this->pageTitle ?></title>
