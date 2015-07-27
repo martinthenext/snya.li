@@ -3,14 +3,26 @@
 class PostCommand extends CConsoleCommand
 {
 
-    public function actionIndex()
+    public function beforeAction($action, $params)
     {
+
         $_SERVER = array(
             'HTTP_HOST' => 'snya.li',
             'SERVER_NAME' => 'snya.li',
             'SERVER_PROTOCOL' => 'HTTP/1.1',
+            'SCRIPT_FILENAME' => '/index.php',
+            'SCRIPT_NAME' => 'index.php',
             'HTTPS' => 'on',
         );
+
+        Yii::app()->urlManager->baseUrl = (($_SERVER['HTTPS'] == 'on') ? 'https' : 'http') . "://" . $_SERVER['HTTP_HOST'];
+
+        date_default_timezone_set("Europe/Moscow");
+        return parent::beforeAction($action, $params);
+    }
+
+    public function actionIndex()
+    {
 
         Yii::app()->urlManager->baseUrl = (($_SERVER['HTTPS'] == 'on') ? 'https' : 'http') . "://" . $_SERVER['HTTP_HOST'];
 
@@ -50,36 +62,8 @@ class PostCommand extends CConsoleCommand
             exit();
         }
 
-        $httpClient = new GuzzleHttp\Client(['defaults' => [
-                'verify' => false
-        ]]);
-
-        foreach ($advert->attachments as $attachment) {
-
-            if ($attachment->type != 'photo' || empty($attachment->src)) {
-                continue;
-            }
-
-
-            $filename = tempnam('/tmp', 'snyali_image');
-
-            try {
-                $result = $httpClient->get($attachment->src_lightbox, ['save_to' => $filename]);
-                if ($result->getStatusCode() == 200 && filesize($filename)) {
-                    $size = @getimagesize($filename);
-                    if (!is_array($size) || $size[0] < 200 || $size[1] < 200 || !preg_match("/^image\/(jpeg|jpg)$/isu", $size['mime'])) {
-                        @unlink($filename);
-                        continue;
-                    }
-                    rename($filename, $filename . ".jpeg");
-                    $filename .= ".jpeg";
-                    $post['images'][] = $filename;
-                } else {
-                    @unlink($filename);
-                }
-            } catch (\GuzzleHttp\Exception $e) {
-                @unlink($filename);
-            }
+        foreach ($advert->images as $image) {
+            $post['images'][] = $image->getFilePath();
         }
 
         $tags[] = $advert->type_data->title;
@@ -108,7 +92,7 @@ class PostCommand extends CConsoleCommand
         $text = html_entity_decode(htmlspecialchars_decode($advert->text));
         $text = strip_tags($text);
         $text = preg_replace("/[\x{fe00}-\x{fe0f}]/u", '', $text);
-        $post['message'] .= trim($text).PHP_EOL;
+        $post['message'] .= trim($text) . PHP_EOL;
         $post['message'] .= 'Контакты: ' . $advert->vk_owner_first_name . ' ' . $advert->vk_owner_last_name . ' ';
         foreach ($advert->contacts as $contact) {
             $post['message'] .= $contact->value . " ";
@@ -184,7 +168,7 @@ class PostCommand extends CConsoleCommand
     {
         // Постим с 7 утра до 23 вечера
         if (date("H") < 8 || date("H") > 22) {
-        //    exit();
+            //    exit();
         }
 
         $_SERVER = array(
@@ -215,11 +199,11 @@ class PostCommand extends CConsoleCommand
         #############
 
         $options = [
-                    'CONSUMER_KEY' => 'QaZhOArqdhX2dTeDgREKLZU1z',
-                    'CONSUMER_SECRET' => 'p6M92Hy25Sny8eCfaQRFbFWQgo2LzoTWF6Jt81AcW8HEF0aXSg',
-                    'OAUTH_TOKEN' => '3369377620-afhAyx3mKvGIhy8I9CFZJzzkc49WL7AW8Vx6IgE',
-                    'OAUTH_SECRET' => '3rA5lmWj6soKsB8gj6NV4otGkg8MSrROiNOwKTDCNbdhS',
-                    'account' => 'snyali_snyali',
+            'CONSUMER_KEY' => 'QaZhOArqdhX2dTeDgREKLZU1z',
+            'CONSUMER_SECRET' => 'p6M92Hy25Sny8eCfaQRFbFWQgo2LzoTWF6Jt81AcW8HEF0aXSg',
+            'OAUTH_TOKEN' => '3369377620-afhAyx3mKvGIhy8I9CFZJzzkc49WL7AW8Vx6IgE',
+            'OAUTH_SECRET' => '3rA5lmWj6soKsB8gj6NV4otGkg8MSrROiNOwKTDCNbdhS',
+            'account' => 'snyali_snyali',
         ];
 
         $criteria = new CDbCriteria();
@@ -246,49 +230,22 @@ class PostCommand extends CConsoleCommand
         $images = array();
         $medias = array();
 
-        
-        foreach ($advert->attachments as $attachment) {
 
-            
+        foreach ($advert->images as $image) {
+
+
             usleep(500);
-            
-            
-            
+
             if (count($medias) > 3) {
                 break;
             }
-            
-            
-            if ($attachment->type != 'photo' || empty($attachment->src)) {
-                continue;
-            }
 
-
-            $filename = tempnam('/tmp', 'snyali_image');
-
-            try {
-                $result = $httpClient->get($attachment->src_lightbox, ['save_to' => $filename]);
-                if ($result->getStatusCode() == 200 && filesize($filename)) {
-                    $size = @getimagesize($filename);
-                    if (!is_array($size) || $size[0] < 200 || $size[1] < 200 || !preg_match("/^image\/(jpeg|jpg)$/isu", $size['mime'])) {
-                        @unlink($filename);
-                        continue;
-                    }
-                    rename($filename, $filename . ".jpeg");
-                    $filename .= ".jpeg";
-                    
-                    $upload = $connection->upload("media/upload", array('media' => $filename));
-                    $medias[] = $upload->media_id;
-                } else {
-                    @unlink($filename);
-                }
-            } catch (\GuzzleHttp\Exception $e) {
-                @unlink($filename);
-            }
+            $upload = $connection->upload("media/upload", array('media' => $image->getFilePath()));
+            $medias[] = $upload->media_id;
         }
 
         $tags = [];
-        
+
         $tags[] = $advert->type_data->title;
 
         $tags[] = $advert->city->title;
@@ -307,7 +264,7 @@ class PostCommand extends CConsoleCommand
         $tags = array_unique($tags);
         $tags = array_chunk($tags, 9);
         $tags = $tags[0];
-        
+
         $messageLimit = 117;
 
         if (!empty($medias)) {
@@ -333,7 +290,7 @@ class PostCommand extends CConsoleCommand
         }
 
         $text = trim(str_replace('<br>', PHP_EOL, html_entity_decode(htmlspecialchars_decode($advert->text)))) . PHP_EOL;
-        
+
         if (mb_strlen($message, 'UTF-8') < $messageLimit - 2) {
             $message .= mb_substr($text, 0, $messageLimit - mb_strlen($message, 'UTF-8') - 1, 'UTF-8') . ' ';
         }
@@ -357,6 +314,160 @@ class PostCommand extends CConsoleCommand
         }
         var_dump($params);
         var_dump($status);
+    }
+
+    public function actionOk()
+    {
+
+        $options = array(
+            'client_id' => 1146255872,
+            'application_key' => 'CBALHDFFEBABABABA',
+            'client_secret' => '72C8ACABABE600141660AD43',
+            'secret_session_key' => '729f045fe8717746ad390bcdbecaaf70',
+            'access_token' => 'tkn1IlcqnvVHUmYvJ2HpomVMyaQdf7MrNTPZoTuxJNFxuYK3wSj55Rug6ZzX0KjVqQDFO0',
+            'group_id' => 53607146914036,
+            'album_id' => 53607151894772,
+        );
+
+        $criteria = new CDbCriteria();
+        $interval = 86400; // сутки
+        $criteria->condition = "t.enabled and t.created >= UNIX_TIMESTAMP() - {$interval} and t.ok_post_id = ''";
+        $criteria->limit = 1;
+        $criteria->order = "t.relevance desc";
+
+        $advert = Adverts::model()->with(array('city', 'type_data'))->find($criteria);
+
+        if (!$advert) {
+            $interval = $interval * 2;
+            $criteria->condition = "t.enabled and t.created >= UNIX_TIMESTAMP() - {$interval} and t.ok_post_id = ''";
+            $advert = Adverts::model()->find($criteria);
+        }
+
+        if (!$advert) {
+            echo "Empty set. Done." . PHP_EOL;
+            exit();
+        }
+
+        $post = [
+            'message' => '',
+            'images' => [],
+            'url' => '',
+        ];
+
+        foreach ($advert->images as $image) {
+
+            $post['images'][] = $image->getFilePath();
+        }
+
+        $tags[] = $advert->type_data->title;
+
+        $tags[] = $advert->city->title;
+
+        if (!empty($advert->metro->title)) {
+            $tags[] = $advert->metro->title;
+        }
+
+        $tags = array_map(function($value) {
+            $value = '#' . preg_replace('/\s+/isu', "_", trim(htmlspecialchars_decode($value)));
+            $value = preg_replace("/[^\w\_#]+/isu", '', $value);
+            $value = mb_strtolower($value, 'UTF-8');
+            return $value;
+        }, $tags);
+
+        $tags = array_unique($tags);
+        $tags = array_chunk($tags, 9);
+        $tags = $tags[0];
+
+
+        $post['message'] = implode(" ", $tags) . PHP_EOL;
+        $text = preg_replace("/!+/isu", "!", $advert->text);
+        $text = preg_replace("/\<br\>/isu", PHP_EOL, $text);
+        $text = html_entity_decode(htmlspecialchars_decode($advert->text));
+        $text = strip_tags($text);
+        $text = preg_replace("/[\x{fe00}-\x{fe0f}]/u", '', $text);
+        $post['message'] .= trim($text) . PHP_EOL;
+        $post['message'] .= 'Контакты: ' . $advert->vk_owner_first_name . ' ' . $advert->vk_owner_last_name . ' ';
+        $post['message'] .= PHP_EOL . 'Смотреть полностью: ' . $post['url'];
+        foreach ($advert->contacts as $contact) {
+            $post['message'] .= $contact->value . " ";
+        }
+
+
+        $post['url'] = Yii::app()->createAbsoluteUrl('items/item', array('city' => $advert->city->link, 'type' => $advert->type_data->link, 'link' => $advert->link, 'id' => $advert->id));
+
+
+        $post['message'] .= PHP_EOL . 'Смотреть полностью: ' . $post['url'];
+
+        $attachment = array(
+            'media' => array(
+                array(
+                    'type' => 'text',
+                    'text' => $post['message'],
+                ),
+                array(
+                    'type' => 'link',
+                    'url' => $post['url'],
+                ),
+            ),
+        );
+
+
+        $post = (object) $post;
+
+        $ok = new OdnoklassnikiSDK();
+
+        $images = array();
+        foreach ($post->images as $key => $image) {
+            $images['pic' . ($key)] = new CURLFile($image);
+        }
+
+        $photosCount = count($images);
+
+        if ($photosCount > 0) {
+            $upload_result = $ok->makeRequest('photosV2.getUploadUrl', array(
+                //'aid' => $options['album_id'],
+                'gid' => $options['group_id'],
+                'count' => $photosCount,
+            ));
+
+            if (!empty($upload_result['upload_url'])) {
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $upload_result['upload_url']);
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $images);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                $response = curl_exec($ch);
+                curl_close($ch);
+                $response = @json_decode($response, true);
+                if (!empty($response['photos'])) {
+                    $photos = array();
+                    foreach ($response['photos'] as $id => $params) {
+                        $photos[] = array('id' => $params['token']);
+                    }
+
+                    $attachment['media'][] = array(
+                        'type' => 'photo',
+                        'list' => $photos,
+                    );
+                }
+            } else {
+                die("UPLOAD ERROR!");
+            }
+        }
+
+        $params = array(
+            'type' => 'GROUP_THEME',
+            'gid' => $options['group_id'],
+            'attachment' => json_encode($attachment),
+        );
+
+
+        $post_id = $ok->makeRequest('mediatopic.post', $params);
+        if (!empty($post_id)) {
+            $advert->ok_post_id = $post_id;
+            $advert->save(false);
+        }
+        var_dump($post_id);
     }
 
 }
