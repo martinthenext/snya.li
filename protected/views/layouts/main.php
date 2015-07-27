@@ -6,14 +6,14 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="google-site-verification" content="rdruda66FbY1tGpCJdSJcN-31odAxCloUqs6nWfkw_s" />
         <meta name="google-site-verification" content="OldNbJax8LFNl64eq6_-iCDFHHHFJ6zJNZ5m3D1_ASw" />
-        <link rel="shortcut icon" type="image/x-icon" href="<?=Yii::app()->request->hostInfo?>/favicon.ico" />
+        <link rel="shortcut icon" type="image/x-icon" href="<?= Yii::app()->request->hostInfo ?>/favicon.ico" />
         <meta property="og:title" content="<?= $this->pageTitle ?> | СНЯ.ЛИ" />
         <meta property="og:type" content="website"/>
-        <meta property="og:image" content="<?=Yii::app()->request->hostInfo?>/images/logo.png"/>
+        <meta property="og:image" content="<?= Yii::app()->request->hostInfo ?>/images/logo.png"/>
         <meta property="og:site_name" content="snya.li"/>
         <meta property="og:description" content="Продажа, покупка и аренда жилых и нежилых помещений"/>
-        <link rel="canonical" href="<?=Yii::app()->request->hostInfo.Yii::app()->request->requestUri?>"/>
-        <meta property="og:url" content="<?=Yii::app()->request->hostInfo.Yii::app()->request->requestUri?>"/>
+        <link rel="canonical" href="<?= Yii::app()->request->hostInfo . Yii::app()->request->requestUri ?>"/>
+        <meta property="og:url" content="<?= Yii::app()->request->hostInfo . Yii::app()->request->requestUri ?>"/>
         <title><?= $this->pageTitle ?></title>
         <?php if (!empty($this->pageDescription)): ?>
             <meta name="description" content="<?= $this->pageDescription ?>" />
@@ -25,10 +25,6 @@
           <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
           <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
-        <style>
-
-        </style>
-        <script type="text/javascript" src="//vk.com/js/api/xd_connection.js?2"></script>
         <script type="text/javascript" src="//yastatic.net/share/share.js" charset="utf-8"></script>
     </head>
 
@@ -60,23 +56,23 @@
                         <h4 class="modal-title" id="select-city-label">Выбрать город</h4>
                     </div>
                     <div class="modal-body">
-<?php
-$cities = array();
+                        <?php
+                        $cities = array();
 
-foreach ($this->cities as $city) {
-    $cities[strtoupper(mb_substr($city->title, 0, 1))][] = $city;
-}
-?>
+                        foreach ($this->cities as $city) {
+                            $cities[strtoupper(mb_substr($city->title, 0, 1))][] = $city;
+                        }
+                        ?>
                         <?php foreach ($cities as $lit => $cityGroup): ?>
                             <div style="max-width: 150px;">
                                 <strong><?= $lit ?></strong><br />
-    <?php foreach ($cityGroup as $city): ?>
+                                <?php foreach ($cityGroup as $city): ?>
                                     <a class="city-link" href="<?= Yii::app()->createAbsoluteUrl("items/CityChange", array('city' => $city->link)) ?>">
-        <?= $city->title ?>
+                                        <?= $city->title ?>
                                     </a><br />
-    <?php endforeach; ?>
+                                <?php endforeach; ?>
                             </div>
-<?php endforeach; ?>
+                        <?php endforeach; ?>
                         <div style="clear:  both;"></div>
                     </div>
                     <div class="modal-footer">
@@ -133,6 +129,41 @@ foreach ($this->cities as $city) {
 
         var $win = $(window);
 
+
+        if (!(window.parent == window)) {
+            var el = document.createElement("script");
+            el.type = "text/javascript";
+            el.src = "//vk.com/js/api/xd_connection.js?2";
+            el.async = false;
+            $("head").append(el);
+            var interval = setInterval(function () {
+                if (typeof (VK) == 'object') {
+                    clearInterval(interval);
+                    VK.init(function () {
+                        setInterval(newSizeWindow, 100);
+                        function newSizeWindow() {
+                            var h = $('body').height();
+                            if (h < 827) {
+                                h = 827;
+                            }
+                            VK.callMethod("resizeWindow", 760, h);
+
+                        }
+
+                        VK.addCallback("onScroll", function (scrollTop, windowHeight) {
+                            if (scrollTop + windowHeight >= $marker.offset().top) {
+                                $('#showMore').trigger('click');
+                            }
+                        });
+
+                        VK.callMethod("scrollSubscribe", true);
+
+                    });
+                }
+            }, 1000);
+        }
+
+
         var $marker = $('#showMore');
 
         $win.scroll(function () {
@@ -141,28 +172,6 @@ foreach ($this->cities as $city) {
             }
         });
 
-
-        VK.init(function () {
-
-            setInterval(newSizeWindow, 100);
-            function newSizeWindow() {
-                var h = $('body').height();
-                if (h < 827) {
-                    h = 827;
-                }
-                VK.callMethod("resizeWindow", 760, h);
-
-            }
-
-            VK.addCallback("onScroll", function (scrollTop, windowHeight) {
-                if (scrollTop + windowHeight >= $marker.offset().top) {
-                    $('#showMore').trigger('click');
-                }
-            });
-
-            VK.callMethod("scrollSubscribe", true);
-
-        });
     })(jQuery);
     /*]]>*/
 </script>
