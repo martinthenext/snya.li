@@ -19,21 +19,7 @@
                             Открыть объявление
                         </a>
                 </div>
-                <!--
-                @todo: Решить, как показывать миниатюры
-                <?php if (!empty($data->attachments)): ?>
-                        <div class="col-lg-2 col-md-2">
-                    <?php foreach ($data->attachments as $attachment): ?>
-                                    <a class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="Фотографии">
-                                        <img src="<?= $attachment->src ?>" class="img-thumbnail" />
-                                    </a>
-                    <?php endforeach; ?>
-                            <script type="text/javascript">
-                                $('.lightbox-<?= $data->id ?>').lightbox();
-                            </script>
-                        </div>
-                <?php endif; ?>
-                -->
+
             </div>
         </div>
         <div class="panel-footer"> 
