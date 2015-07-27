@@ -332,7 +332,7 @@ class ItemsController extends Controller
             }
 
             $item->enabled = 1;
-
+            $item->need_moderate = 1;
             $api = new VkApi(4934698, '3djYV1o2nXEQCzydPGTn', '8b17eb5b67e4534cf64cc7ea70a8b488621d1bc38d48db89b77c9c9fa49499a9606d8aee6d34d72feb5d0');
             $userResult = $api->run('users.get', [
                 'user_ids' => Yii::app()->user->model->service_id,
