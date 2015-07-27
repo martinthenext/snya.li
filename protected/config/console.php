@@ -11,6 +11,8 @@ return array(
     'basePath' => dirname(dirname(__FILE__)),
     'params' => array(
         'vendorPath' => dirname(dirname(__FILE__)) . '/vendor',
+        'webRoot' => '/var/www/snya.li/www',
+        'imagesStorage' => '/var/www/snya.li/www/images',
     ),
     'components' => array(
         'db' => require dirname(__FILE__) . '/mysql.php',

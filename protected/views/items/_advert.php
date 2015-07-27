@@ -4,6 +4,21 @@
             <a href="<?= Yii::app()->createAbsoluteUrl('items/item', array('city' => $data->city->link, 'type' => $data->type_data->link, 'link' => $data->link, 'id' => $data->id)) ?>">
                 <?= $data->type_data->title ?><?= (!empty($data->action) ? ' ' . $data->action->subtitle : '') ?>, <?= 'г. ' . $data->city->title ?><?php if (!empty($data->metro->title)) echo ', м. ' . $data->metro->title; ?>
             </a>
+            <script type="text/javascript">
+                new Ya.share({
+                    element: 'yandex-share-<?= $data->id ?>',
+                    elementStyle: {
+                        'type': 'small',
+                        'border': true,
+                        'quickServices': ['vkontakte', 'facebook', 'twitter', 'odnoklassniki', 'moimir', 'gplus']
+                    },
+                    description: "<?= $data->shortDescription ?>",
+                    link: "<?= Yii::app()->createAbsoluteUrl('items/item', array('city' => $data->city->link, 'type' => $data->type_data->link, 'link' => $data->link, 'id' => $data->id)) ?>",
+                    l10n: 'ru',
+                    theme: 'counter'
+                });
+            </script>
+            <span id="yandex-share-<?= $data->id ?>"></span>
         </h3>
     </div>
     <div class="panel-body">
@@ -22,26 +37,14 @@
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
-                <div class="col-lg-<?= empty($data->attachments) ? '10' : '8' ?> col-md-<?= empty($data->attachments) ? '10' : '8' ?>">
+                <div class="col-lg-10 col-md-10">
                     <?= $data->content ?>
                 </div>
-                <?php if (!empty($data->attachments)): ?>
-                    <div class="col-lg-2 col-md-2">
-                        <?php foreach ($data->attachments as $key => $attachment): ?>
-                            <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $attachment->src_lightbox ?>" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>">
-                                <img itemprop="contentUrl" src="<?= $attachment->src ?>" class="img-thumbnail" alt="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>"/>
-                            </a>
-                        <?php endforeach; ?>
-                        <script type="text/javascript">
-                            $('.lightbox-<?= $data->id ?>').lightbox();
-                        </script>
-                    </div>
-                <?php endif; ?>
                 <?php if (!empty($data->images)): ?>
-                    <div class="col-lg-2 col-md-2">
+                    <div class="col-lg-10 col-md-10 col-offset-2">
                         <?php foreach ($data->images as $key => $image): ?>
-                            <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $image->getSrc(Images::IMAGE_BIG) ?>" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>">
-                                <img itemprop="contentUrl" src="<?= $image->getSrc(Images::IMAGE_THUMB) ?>" class="img-thumbnail" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>" alt="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>"/>
+                            <a itemscope itemtype="http://schema.org/ImageObject" class="lightbox-<?= $data->id ?>" href="<?= $image->src ?>" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>">
+                                <img style="width: 100px; height: 100px;" itemprop="contentUrl" src="<?= $image->thumb ?>" class="img-thumbnail" alt="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>" title="<?= CHtml::encode($this->pageTitle . ' фото ' . ($key + 1)) ?>"/>
                             </a>
                         <?php endforeach; ?>
                         <script type="text/javascript">
@@ -88,23 +91,6 @@
                     <?php endif; ?>
                 </div>
             </div>
-        </div>
-        <div class="row" style="padding-left: 11px; min-height: 30px;">
-            <script type="text/javascript">
-                new Ya.share({
-                    element: 'yandex-share-<?= $data->id ?>',
-                    elementStyle: {
-                        'type': 'small',
-                        'border': true,
-                        'quickServices': ['vkontakte', 'facebook', 'twitter', 'odnoklassniki', 'moimir', 'gplus']
-                    },
-                    description: "<?= $data->shortDescription ?>",
-                    link: "<?= Yii::app()->createAbsoluteUrl('items/item', array('city' => $data->city->link, 'type' => $data->type_data->link, 'link' => $data->link, 'id' => $data->id)) ?>",
-                    l10n: 'ru',
-                    theme: 'counter'
-                });
-            </script>
-            <div id="yandex-share-<?= $data->id ?>"></div>
         </div>
 
         <?php if (Yii::app()->user->checkAccess('moderator')): ?>

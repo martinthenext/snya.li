@@ -1,6 +1,8 @@
 <?php
+
 class UpdateCommand extends CConsoleCommand
 {
+
     /**
      * Обновляет список городов в базе данных
      * @param str $filename Путь к файлу городов, разделенных через запятую
@@ -8,12 +10,12 @@ class UpdateCommand extends CConsoleCommand
     public function actionCities($filename)
     {
         if (!file_exists($filename)) {
-            throw new CException('Файл '.$filename.' не найден.');
+            throw new CException('Файл ' . $filename . ' не найден.');
         }
 
         $cities = file_get_contents($filename);
         $cities = explode(",", $cities);
-        
+
         /**
          * Тырил с википедии с помощью js
          * https://ru.wikipedia.org/wiki/%D0%A1%D0%BF%D0%B8%D1%81%D0%BE%D0%BA_%D0%B3%D0%BE%D1%80%D0%BE%D0%B4%D0%BE%D0%B2_%D0%A0%D0%BE%D1%81%D1%81%D0%B8%D0%B8_%D1%81_%D0%BD%D0%B0%D1%81%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%D0%BC_%D0%B1%D0%BE%D0%BB%D0%B5%D0%B5_100_%D1%82%D1%8B%D1%81%D1%8F%D1%87_%D0%B6%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9
@@ -25,62 +27,62 @@ class UpdateCommand extends CConsoleCommand
             // "Артем (город)" => "Артем"
             return trim(preg_replace("/\([\w\s]+\)/isu", '', $value));
         }, $cities);
-        
+
         $api = new VkApi(4934698, '3djYV1o2nXEQCzydPGTn', '8b17eb5b67e4534cf64cc7ea70a8b488621d1bc38d48db89b77c9c9fa49499a9606d8aee6d34d72feb5d0');
 
         foreach ($cities as $city) {
             $result = $api->run("database.getCities", array(
-                'country_id'=>1, // пока только для России
-                'need_all'=>0,
-                'count'=>1,
-                'q'=>$city,
+                'country_id' => 1, // пока только для России
+                'need_all' => 0,
+                'count' => 1,
+                'q' => $city,
             ));
             sleep(1);
-            
+
             /*
              * object(stdClass)#16 (4) {
-                ["cid"]=>
-                int(468)
-                ["title"]=>
-                string(22) "Прокопьевск"
-                ["area"]=>
-                string(37) "Прокопьевский район"
-                ["region"]=>
-                string(37) "Кемеровская область"
+              ["cid"]=>
+              int(468)
+              ["title"]=>
+              string(22) "Прокопьевск"
+              ["area"]=>
+              string(37) "Прокопьевский район"
+              ["region"]=>
+              string(37) "Кемеровская область"
               }
              */
-            
+
             if ($result !== false) {
-                
+
                 $result = (array) $result;
-                        
+
                 if (!isset($result[0])) {
-                    echo "{$city} не найден".PHP_EOL;
+                    echo "{$city} не найден" . PHP_EOL;
                     continue;
                 }
-                
+
                 $result = $result[0];
-                
+
                 $model = new Cities('update_vk');
                 $model->attributes = array(
-                    'vk_city_id'=>$result->cid,
-                    'title'=>trim($result->title),
-                    'area'=>!(empty($result->area)) ? trim($result->area) : '',
-                    'region'=>!(empty($result->region)) ? trim($result->region) : '',
+                    'vk_city_id' => $result->cid,
+                    'title' => trim($result->title),
+                    'area' => !(empty($result->area)) ? trim($result->area) : '',
+                    'region' => !(empty($result->region)) ? trim($result->region) : '',
                 );
                 if ($model->validate()) {
                     $model->save();
-                    echo $city." добавлен".PHP_EOL;
+                    echo $city . " добавлен" . PHP_EOL;
                 } else {
-                    echo $city." не добавлен".PHP_EOL;
+                    echo $city . " не добавлен" . PHP_EOL;
                     var_dump($model->getErrors());
                 }
             }
         }
-        
-        echo "Завершено".PHP_EOL;
+
+        echo "Завершено" . PHP_EOL;
     }
-    
+
     public function actionMetro()
     {
         $str = "
@@ -167,9 +169,10 @@ class UpdateCommand extends CConsoleCommand
             $model->save();
         }
     }
-    
+
     public function actionIndex()
     {
+        include 'WideImage/WideImage.php';
         $api = new VkApi(4934698, '3djYV1o2nXEQCzydPGTn', '8b17eb5b67e4534cf64cc7ea70a8b488621d1bc38d48db89b77c9c9fa49499a9606d8aee6d34d72feb5d0');
 
         $cities = Cities::model()->findAll();
@@ -264,6 +267,7 @@ class UpdateCommand extends CConsoleCommand
                     if (!empty($post->attachments)) {
                         foreach ($post->attachments as $attachment) {
 
+
                             // Содержит ссылку или видео
                             if ($attachment->type == 'link' || $attachment->type == 'video') {
                                 echo "Пост содержит ссылки или видео, пропущен." . PHP_EOL;
@@ -276,29 +280,65 @@ class UpdateCommand extends CConsoleCommand
                                 continue;
                             }
 
-                            $attachmentModel = new Attachments('import');
-                            $attachmentModel->advert_id = $adwert->id;
-                            $attachmentModel->owner_id = $attachment->photo->owner_id;
-                            $attachmentModel->pid = $attachment->photo->pid;
-                            $attachmentModel->aid = $attachment->photo->aid;
-                            $attachmentModel->type = $attachment->type;
-                            $attachmentModel->src = !empty($attachment->photo->src) ? $attachment->photo->src : '';
-                            $attachmentModel->src_big = !empty($attachment->photo->src_big) ? $attachment->photo->src_big : '';
-                            $attachmentModel->src_xbig = !empty($attachment->photo->src_xbig) ? $attachment->photo->src_xbig : '';
-                            $attachmentModel->src_xxbig = !empty($attachment->photo->src_xxbig) ? $attachment->photo->src_xxbig : '';
-                            $attachmentModel->src_xxxbig = !empty($attachment->photo->src_xxxbig) ? $attachment->photo->src_xxxbig : '';
+                            $src = $attachment->photo->src;
+                            $src = !empty($attachment->photo->src_big) ? $attachment->photo->src_big : $src;
+                            $src = !empty($attachment->photo->src_xbig) ? $attachment->photo->src_xbig : $src;
+                            $src = !empty($attachment->photo->src_xxbig) ? $attachment->photo->src_xxbig : $src;
+                            $src = !empty($attachment->photo->src_xxxbig) ? $attachment->photo->src_xxxbig : $src;
 
-                            $attachmentModel->width = $attachment->photo->width;
-                            $attachmentModel->height = $attachment->photo->height;
 
-                            if ($attachmentModel->validate()) {
-                                $attachmentModel->save();
-                            } else {
-                                $transaction->rollback();
-                                $transaction->active = false;
-                                var_dump($attachmentModel->getErrors());
-                                break;
+                            $filename = tempnam(sys_get_temp_dir(), 'attach-download');
+                            $handle = fopen($filename, 'w');
+
+                            $ch = curl_init($src);
+                            curl_setopt($ch, CURLOPT_FILE, $handle);
+                            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+                            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                            curl_exec($ch);
+                            curl_close($ch);
+
+                            fclose($handle);
+
+                            $mime = mime_content_type($filename);
+
+                            if (preg_match("/^image\/(?P<extension>\w+)$/isu", $mime, $matches)) {
+                                $md5File = md5_file($filename);
+
+                                $path = Yii::app()->params['imagesStorage'] . '/' . mb_substr($md5File, 0, 2) . '/' . mb_substr($md5File, 2, 2);
+
+                                if (!file_exists($path) || !is_dir($path)) {
+                                    mkdir($path, 0777, true);
+                                }
+
+                                rename($filename, $path . '/' . $md5File . '.' . $matches['extension']);
+                                chmod($path . '/' . $md5File . '.' . $matches['extension'], 0777);
+
+                                try {
+                                    $wideImage = WideImage::load($path . '/' . $md5File . '.' . $matches['extension']);
+                                    $watermark = WideImage::load(Yii::app()->params['webRoot'] . '/images/logo.png');
+                                    $wideImage = $wideImage->merge($watermark, "right", "bottom");
+                                    $wideImage->saveToFile($path . '/' . $md5File . '.' . $matches['extension']);
+
+                                    $thumbSize = Images::IMAGE_THUMB;
+
+                                    $resized = $wideImage->resize($thumbSize[0], $thumbSize[1], 'fill');
+                                    $resized->saveToFile($path . '/' . $md5File . '_' . $thumbSize[0] . 'x' . $thumbSize[0] . '.' . $matches['extension']);
+                                } catch (Exception $e) {
+                                    echo $e->getMessage() . PHP_EOL;
+                                }
+
+                                $model = new Images('import');
+                                $model->advert_id = $adwert->id;
+                                $model->name = $md5File . '.' . $matches['extension'];
+                                $model->extension = $matches['extension'];
+                                $model->mime_type = $mime;
+                                $model->filesize = filesize($path . '/' . $md5File . '.' . $matches['extension']);
+                                if ($model->validate()) {
+                                    $model->save(false);
+                                }
                             }
+
+                            @unlink($filename);
                         }
                     }
                 } else {
@@ -314,4 +354,5 @@ class UpdateCommand extends CConsoleCommand
             }
         }
     }
+
 }
