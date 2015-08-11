@@ -31,7 +31,7 @@ class PostCommand extends CConsoleCommand
             'app_secret' => '9ZY39OBWAzQVrB88SFzu',
             'app_authkey' => 'b5c5cca893e16d19fa16c94f01e369d1d7d7d190ff0be6cc8531e788211315f075055e5bdc25428ef7663',
             'group_id' => 94983589,
-            'photo_album_id' => 216531844,
+            'photo_album_id' => false,
             'video_album_id' => 1,
         ];
 
@@ -105,10 +105,36 @@ class PostCommand extends CConsoleCommand
             // Данные для API
             $api = new VkApi($options['app_id'], $options['app_secret'], $options['app_authkey']);
 
+
+            $albums = $api->run('photos.getAlbums', array(
+                'owner_id' => $options['group_id'] * -1,
+            ));
+            foreach ($albums as $album) {
+                if ($album->size < 10000 && $album->can_upload) {
+                    $options['photo_album_id'] = $album->aid;
+                    break;
+                }
+            }
+            
+            if ($options['photo_album_id'] === false) {
+                $result = $api->run('photos.createAlbum', array(
+                    'title'=>'Фото',
+                    'group_id'=>$options['group_id'],
+                    'privacy_view'=>'all',
+                    'privacy_comment'=>'all',
+                    'upload_by_admins_only'=>1, 
+                ));
+                
+                $options['photo_album_id'] = $result->id;
+            }
+            
+            //$options['photo_album_id'];
             if (!empty($post['images'])) {
                 $result = $api->run('photos.getUploadServer', array(
                     'group_id' => (int) $options['group_id'],
                     'album_id' => (int) $options['photo_album_id'],
+                    'captcha_sid' => '518594979355',
+                    'captcha_key' => 'h2cnms',
                 ));
 
                 $upload_url = $result->upload_url;
@@ -368,8 +394,8 @@ class PostCommand extends CConsoleCommand
         }
 
         $tags = array_map(function($value) {
-            $value = '#' . preg_replace('/\s+/isu', "_", trim(htmlspecialchars_decode($value)));
-            $value = preg_replace("/[^\w\_#]+/isu", '', $value);
+            $value = preg_replace('/\s+/isu', " ", trim(htmlspecialchars_decode($value)));
+            $value = preg_replace("/[^\w\_\s]+/isu", '', $value);
             $value = mb_strtolower($value, 'UTF-8');
             return $value;
         }, $tags);
@@ -379,13 +405,13 @@ class PostCommand extends CConsoleCommand
         $tags = $tags[0];
 
 
-        $post['message'] = implode(" ", $tags) . PHP_EOL;
         $text = preg_replace("/!+/isu", "!", $advert->text);
         $text = preg_replace("/\<br\>/isu", PHP_EOL, $text);
         $text = html_entity_decode(htmlspecialchars_decode($advert->text));
         $text = strip_tags($text);
         $text = preg_replace("/[\x{fe00}-\x{fe0f}]/u", '', $text);
-        $post['message'] .= trim($text) . PHP_EOL;
+
+        $post['message'] = trim($text) . PHP_EOL;
         $post['message'] .= 'Контакты: ' . $advert->vk_owner_first_name . ' ' . $advert->vk_owner_last_name . ' ';
         $post['message'] .= PHP_EOL . 'Смотреть полностью: ' . $post['url'];
         foreach ($advert->contacts as $contact) {
@@ -463,11 +489,18 @@ class PostCommand extends CConsoleCommand
 
 
         $post_id = $ok->makeRequest('mediatopic.post', $params);
-        if (!empty($post_id)) {
+        var_dump($post_id);
+        if (!empty($post_id) && !is_array($post_id)) {
             $advert->ok_post_id = $post_id;
             $advert->save(false);
+
+            foreach ($tags as $tag) {
+                $ok->makeRequest('mediatopic.addTag', array(
+                    'topic_id' => $post_id,
+                    'tag' => $tag,
+                ));
+            }
         }
-        var_dump($post_id);
     }
 
 }
