@@ -29,7 +29,7 @@ class PostCommand extends CConsoleCommand
         $options = [
             'app_id' => 4943537,
             'app_secret' => '9ZY39OBWAzQVrB88SFzu',
-            'app_authkey' => 'b5c5cca893e16d19fa16c94f01e369d1d7d7d190ff0be6cc8531e788211315f075055e5bdc25428ef7663',
+            'app_authkey' => '8fd97fd2a114e206d59eec7a29be91e03730c0339ce03e71b0372e375b620e1ecc347782cae9b4aa65ece',
             'group_id' => 94983589,
             'photo_album_id' => false,
             'video_album_id' => 1,
